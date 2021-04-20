@@ -67,12 +67,12 @@ public class StringUtil {
         return Base64.getEncoder().encodeToString(key.getEncoded());
     }
 
-    public static String getMerkleRoot(ArrayList<String> transactions) {
+    public static String getMerkleRoot(ArrayList<Transaction> transactions) {
         int count = transactions.size();
 
-        List<String> previousTreeLayer = new ArrayList<String>();
-        for (String transaction : transactions) {
-            previousTreeLayer.add(transaction);
+        List<String> previousTreeLayer = new ArrayList<>();
+        for (Transaction transaction : transactions) {
+            previousTreeLayer.add(transaction.transactionId);
         }
         List<String> treeLayer = previousTreeLayer;
 

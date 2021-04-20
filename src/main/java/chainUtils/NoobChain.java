@@ -17,7 +17,7 @@ public class NoobChain {
 
     // show the blockchain
     public void show() {
-        blockchain.forEach(Block::blockJson);
+        blockchain.forEach(b -> System.out.println(b.blockJson()));
     }
 
 }

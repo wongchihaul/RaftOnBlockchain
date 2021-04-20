@@ -15,9 +15,9 @@ public class RedisCURD {
     }
 
     public Integer get(String key) {
-        try {
+        if (jedis.get(key) != null) {
             return Integer.valueOf(jedis.get(key));
-        } catch (NullPointerException e) {
+        } else {
             System.out.println("(nil)");
             return Integer.MIN_VALUE;
         }

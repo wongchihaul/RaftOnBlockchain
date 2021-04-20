@@ -7,7 +7,7 @@ public class Block {
     public String hash;
     public String previousHash;
     public String merkleRoot;
-    public ArrayList<String> transactions = new ArrayList<>(); //List of CRUD
+    public ArrayList<Transaction> transactions = new ArrayList<>(); //List of CRUD
     public long timeStamp; //as number of milliseconds since 1/1/1970.
 
     //Block Constructor.
@@ -19,7 +19,7 @@ public class Block {
 
 
     //Add one transaction to this block
-    public synchronized boolean addTransaction(String transaction) {
+    public synchronized boolean addTransaction(Transaction transaction) {
         //add transactions, then re-calculate the hash of this block
         if (transaction == null) {
             return false;
@@ -32,7 +32,7 @@ public class Block {
     }
 
     //Add bulk of transactions to this block
-    public synchronized boolean addTransaction(ArrayList<String> transactions) {
+    public synchronized boolean addTransaction(ArrayList<Transaction> transactions) {
         //add transactions, then re-calculate the hash of this block
         if (transactions == null) {
             return false;
