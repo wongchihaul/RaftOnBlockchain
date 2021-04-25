@@ -22,7 +22,7 @@ public class RPCServer {
         rpcServer.registerUserProcessor(new SyncUserProcessor<RPCReq>() {
             @Override
             public Object handleRequest(BizContext bizContext, RPCReq rpcReq) throws Exception {
-                return handleRequest(bizContext, rpcReq);
+                return handleReq(rpcReq);
             }
 
             @Override
@@ -40,7 +40,7 @@ public class RPCServer {
         rpcServer.stop();
     }
 
-    public RPCResp handleRequest(BizContext bizContext, RPCReq rpcReq) {
+    public RPCResp handleReq(RPCReq rpcReq) {
         boolean result = false;
         switch (rpcReq.getRequest()) {
             case "REQ_VOTE":
