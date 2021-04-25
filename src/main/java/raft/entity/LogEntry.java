@@ -1,4 +1,54 @@
 package raft.entity;
 
-public class LogEntry {
+
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.io.Serializable;
+import java.util.Objects;
+
+@Getter
+@Setter
+@Builder
+public class LogEntry implements Serializable, Comparable {
+
+    private long term;
+
+    private long index;
+
+    private Command command;
+
+
+    @Override
+    public int compareTo(Object o) {
+        if (o == null) {
+            return -1;
+        }
+        if (this.getIndex() > ((LogEntry) o).getIndex()) {
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || this.getClass() != o.getClass()) {
+            return false;
+        }
+        LogEntry logEntry = (LogEntry) o;
+        return term == logEntry.getTerm() &&
+                index == logEntry.getIndex() &&
+                command.equals(logEntry.getCommand());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(term, index, command);
+    }
+
 }

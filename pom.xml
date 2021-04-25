@@ -27,8 +27,8 @@
         <!-- RPC transport -->
         <dependency>
             <groupId>com.alipay.sofa</groupId>
-            <artifactId>bolt</artifactId>
-            <version>1.4.1</version>
+            <artifactId>sofa-rpc-all</artifactId>
+            <version>5.7.7</version>
         </dependency>
 
         <!-- Redis -->
@@ -53,11 +53,13 @@
         </dependency>
 
 
-        <dependency>
-            <groupId>com.alipay.sofa</groupId>
-            <artifactId>hessian</artifactId>
-            <version>3.3.2</version>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>com.alipay.sofa</groupId>-->
+        <!--            <artifactId>hessian</artifactId>-->
+        <!--            <version>3.3.2</version>-->
+        <!--        </dependency>-->
+
+
     </dependencies>
 
 </project>
