@@ -14,9 +14,9 @@ import java.io.Serializable;
 public class RPCReq<T> implements Serializable {
 
     /**
-     * Options: REQ_VOTE, APP_ENTRY, KV
+     * Options: REQ_VOTE(0), APP_ENTRY(1), KV(2)
      */
-    String Request;
+    int Request;
 
     /**
      * IP address of RPCServer

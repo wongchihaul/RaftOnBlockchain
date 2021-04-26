@@ -13,18 +13,19 @@ import raft.entity.ReqVoteResult;
 
 public interface Consensus {
     /**
-     * Request for vote RPC
-     * <p>
+     * RPC requesting for vote
      * Receiver :
      * 1. Reply false if term < currentTerm (§5.1)
      * 2. If votedFor is null or candidateId, and candidate’s log is at
      * least as up-to-date as receiver’s log, grant vote (§5.2, §5.4)
+     *
+     * @param param
+     * @return
      */
     ReqVoteResult requestVote(ReqVoteParam param);
 
     /**
      * Append entries RPC
-     * <p>
      * Receiver:
      * 1. Reply false if term < currentTerm (§5.1)
      * 2. Reply false if log doesn’t contain an entry at prevLogIndex
@@ -35,7 +36,8 @@ public interface Consensus {
      * 4. Append any new entries not already in the log
      * 5. If leaderCommit > commitIndex, set commitIndex =
      * min(leaderCommit, index of last new entry)
+     * @param param
+     * @return
      */
-
     AppEntryResult appendEntry(AppEntryParam param);
 }

@@ -4,6 +4,7 @@ import client.KVReq;
 import com.alipay.remoting.BizContext;
 import com.alipay.remoting.rpc.RpcServer;
 import com.alipay.remoting.rpc.protocol.SyncUserProcessor;
+import raft.common.Code;
 import raft.entity.AppEntryParam;
 import raft.entity.ReqVoteParam;
 import raft.impl.NodeIMPL;
@@ -43,13 +44,13 @@ public class RPCServer {
     public RPCResp handleReq(RPCReq rpcReq) {
         boolean result = false;
         switch (rpcReq.getRequest()) {
-            case "REQ_VOTE":
+            case Code.ReqType.REQ_VOTE:
                 result = node.handleReqVote((ReqVoteParam) rpcReq.getParam()).isVoteGranted();
                 break;
-            case "APP_ENTRY":
+            case Code.ReqType.APP_ENTRY:
                 result = node.handlerAppEntry((AppEntryParam) rpcReq.getParam()).isSuccess();
                 break;
-            case "KV":
+            case Code.ReqType.KV:
                 result = node.handleClientReq((KVReq) rpcReq.getParam()).isSuccess();
                 break;
             default:

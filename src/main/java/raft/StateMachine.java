@@ -3,14 +3,12 @@ package raft;
 import raft.entity.LogEntry;
 
 /**
- * CRUD of persistent data in database
+ * CRUD of persistent data in Redis
  */
 
 public interface StateMachine {
 
     void apply(LogEntry logEntry);
-
-    LogEntry get(String key);
 
     String getVal(String key);
 

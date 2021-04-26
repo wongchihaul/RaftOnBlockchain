@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.ArrayList;
+
 @Getter
 @Setter
 @ToString
@@ -29,13 +31,13 @@ public class AppEntryParam {
     /**
      * term of prevLogIndex entry
      */
-    long preLogTerm;
+    long prevLogTerm;
 
     /**
      * log entries to store (empty for heartbeat;
      * may send more than one for efficiency)
      */
-    LogEntry[] logEntries;
+    ArrayList<LogEntry> logEntries = new ArrayList<>();
 
     /**
      * leader’s commitIndex
