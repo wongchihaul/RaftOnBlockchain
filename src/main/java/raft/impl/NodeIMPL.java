@@ -6,9 +6,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import raft.Consensus;
 import raft.LogModule;
 import raft.Node;
 import raft.common.Code;
+import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.entity.AppEntryParam;
 import raft.entity.AppEntryResult;
@@ -18,6 +20,7 @@ import redis.clients.jedis.Jedis;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 
 @Getter
@@ -25,6 +28,9 @@ import java.util.Set;
 @ToString
 @Builder
 public class NodeIMPL implements Node {
+
+    private static final Logger logger = Logger.getLogger(NodeIMPL.class.getName());
+
     // START of Raft properties configuration
     /**
      * initialized to 0 on first boot, increases monotonically
@@ -48,7 +54,8 @@ public class NodeIMPL implements Node {
      * Options: FOLLOWER(0), CANDIDATE(1), LEADER(2)
      * Initiate as a FOLLOWER;
      */
-    volatile int status = Code.NodeStatus.FOLLOWER;
+//    volatile int status = Code.NodeStatus.FOLLOWER;
+    volatile NodeStatus status = NodeStatus.FOLLOWER;
 
     volatile Peer leader = null;
 
@@ -75,6 +82,8 @@ public class NodeIMPL implements Node {
     private StateMachineIMPL stateMachine;
     // END of Network and Redis configuration
 
+    private Consensus consensus;
+
 
     public NodeIMPL(String addr) {
         this.addr = addr;
@@ -82,16 +91,19 @@ public class NodeIMPL implements Node {
         this.logModule = new LogModuleIMPL(this);
         this.peerSet = new HashSet<>();
         this.stateMachine = new StateMachineIMPL(this);
+        this.consensus = new ConsensusIMPL(this);
     }
 
     @Override
     public ReqVoteResult handleReqVote(ReqVoteParam param) {
-        return null;
+        logger.warning(String.format("request vote param info: %s", param));
+        return consensus.requestVote(param);
     }
 
     @Override
     public AppEntryResult handlerAppEntry(AppEntryParam param) {
-        return null;
+        logger.warning(String.format("Append Entry param info: %s", param));
+        return consensus.appendEntry(param);
     }
 
     @Override

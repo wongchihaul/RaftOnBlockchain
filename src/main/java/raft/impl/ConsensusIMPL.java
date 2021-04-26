@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import raft.Consensus;
 import raft.common.Code;
+import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.entity.*;
 
@@ -20,6 +21,10 @@ public class ConsensusIMPL implements Consensus {
     public NodeIMPL node;
 
     public ReentrantLock reqVoteLock = new ReentrantLock(), appEntryLock = new ReentrantLock();
+
+    public ConsensusIMPL(NodeIMPL node) {
+        this.node = node;
+    }
 
     /**
      * RPC requesting for vote
@@ -40,7 +45,7 @@ public class ConsensusIMPL implements Consensus {
 
             // Reply false if term < currentTerm
             if (param.getTerm() < node.getCurrentTerm()) {
-                return ReqVoteResult.success(node);
+                return ReqVoteResult.fail(node);
             }
 
             // If votedFor is null or candidateId, and candidate’s log is at
@@ -56,7 +61,7 @@ public class ConsensusIMPL implements Consensus {
             }
 
             // update status
-            node.status = Code.NodeStatus.FOLLOWER;
+            node.status = NodeStatus.FOLLOWER;
             node.setCurrentTerm(param.getTerm());
             node.setVotedFor(param.getCandidateId());
             node.setLeader(new Peer(param.getCandidateId()));
@@ -90,10 +95,11 @@ public class ConsensusIMPL implements Consensus {
                 return AppEntryResult.fail(node);
             }
 
+            // Requirement 1
             if (param.getTerm() < node.getCurrentTerm()) {
                 return AppEntryResult.fail(node);
             } else {
-                node.status = Code.NodeStatus.FOLLOWER;
+                node.status = NodeStatus.FOLLOWER;
             }
 
             node.setCurrentTerm(param.getTerm());
