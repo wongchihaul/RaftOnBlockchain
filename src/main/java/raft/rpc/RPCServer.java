@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 public class RPCServer {
     NodeIMPL node;
     RpcServer rpcServer;
-    public static final Logger logger = Logger.getLogger(RPCClient.class.getName());
+    public static final Logger logger = Logger.getLogger(RPCServer.class.getName());
 
     public RPCServer(int port, NodeIMPL node) {
         this.node = node;
