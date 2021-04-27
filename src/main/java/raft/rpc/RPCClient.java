@@ -17,10 +17,13 @@ public class RPCClient {
     /**
      * Initiate a RPC Client
      */
-    public static RpcClient rpcClient = new RpcClient();
+    private static RpcClient rpcClient = new RpcClient();
 
     static {
         rpcClient.init();
+    }
+
+    public RPCClient() {
     }
 
     public RPCResp sendReq(RPCReq rpcReq) {

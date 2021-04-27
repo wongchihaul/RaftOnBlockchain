@@ -2,6 +2,7 @@ package raft.impl;
 
 import client.KVAck;
 import client.KVReq;
+import com.alipay.remoting.rpc.RpcClient;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,10 +13,14 @@ import raft.Node;
 import raft.common.Code;
 import raft.common.NodeStatus;
 import raft.common.Peer;
+import raft.concurrent.RaftThreadPool;
 import raft.entity.AppEntryParam;
 import raft.entity.AppEntryResult;
 import raft.entity.ReqVoteParam;
 import raft.entity.ReqVoteResult;
+import raft.rpc.RPCClient;
+import raft.rpc.RPCServer;
+import raft.tasks.HeartBeatTask;
 import redis.clients.jedis.Jedis;
 
 import java.util.HashSet;
@@ -26,10 +31,13 @@ import java.util.logging.Logger;
 @Getter
 @Setter
 @ToString
-@Builder
+//@Builder
 public class NodeIMPL implements Node {
 
-    private static final Logger logger = Logger.getLogger(NodeIMPL.class.getName());
+
+    public static final int HEARTBEAT_TICK = 1500;
+
+    public static final Logger logger = Logger.getLogger(NodeIMPL.class.getName());
 
     // START of Raft properties configuration
     /**
@@ -54,7 +62,6 @@ public class NodeIMPL implements Node {
      * Options: FOLLOWER(0), CANDIDATE(1), LEADER(2)
      * Initiate as a FOLLOWER;
      */
-//    volatile int status = Code.NodeStatus.FOLLOWER;
     volatile NodeStatus status = NodeStatus.FOLLOWER;
 
     volatile Peer leader = null;
@@ -84,6 +91,13 @@ public class NodeIMPL implements Node {
 
     private Consensus consensus;
 
+    private long lastHeartBeatTime = 0;
+
+    private RPCClient rpcClient = new RPCClient();
+//    private RPCServer rpcServer = new RPCServer(9000, this); //这里先随便写了个
+
+    private HeartBeatTask heartBeatTask = new HeartBeatTask(this);
+
 
     public NodeIMPL(String addr) {
         this.addr = addr;
@@ -92,6 +106,12 @@ public class NodeIMPL implements Node {
         this.peerSet = new HashSet<>();
         this.stateMachine = new StateMachineIMPL(this);
         this.consensus = new ConsensusIMPL(this);
+    }
+
+    public void run() {
+        consensus = new ConsensusIMPL(this);
+        RaftThreadPool.scheduleWithFixedDelay(heartBeatTask, 1000);
+
     }
 
     @Override
