@@ -2,31 +2,27 @@ package raft.impl;
 
 import client.KVAck;
 import client.KVReq;
-import com.alipay.remoting.rpc.RpcClient;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import raft.Consensus;
 import raft.LogModule;
 import raft.Node;
-import raft.common.Code;
 import raft.common.NodeStatus;
 import raft.common.Peer;
-import raft.concurrent.RaftThreadPool;
-import raft.entity.AppEntryParam;
-import raft.entity.AppEntryResult;
-import raft.entity.ReqVoteParam;
-import raft.entity.ReqVoteResult;
+import raft.entity.*;
 import raft.rpc.RPCClient;
 import raft.rpc.RPCServer;
 import raft.tasks.HeartBeatTask;
+import raft.tasks.LeaderElection;
 import redis.clients.jedis.Jedis;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.ScheduledFuture;
 import java.util.logging.Logger;
+
+import static raft.concurrent.RaftConcurrent.RaftThreadPool;
 
 
 @Getter
@@ -38,8 +34,9 @@ public class NodeIMPL implements Node {
 
     public static final int HEARTBEAT_TICK = 125;
 
-    public static final Logger logger = Logger.getLogger(NodeIMPL.class.getName());
+    public static final Logger LOGGER = Logger.getLogger(NodeIMPL.class.getName());
 
+    public volatile boolean started;
 
     // START of Raft properties configuration
     /**
@@ -81,6 +78,8 @@ public class NodeIMPL implements Node {
     public volatile long prevElectionTime = 0;
     //the election timeouts are chosen randomly from a ﬁxed interval(150-300ms) as suggested
     public volatile int electionTimeOut = 150;
+    public static final int ELECTION_TIMEOUT = 150;
+
 
     public volatile long preHeartBeat = 0;
     // END of Raft properties configuration
@@ -100,9 +99,12 @@ public class NodeIMPL implements Node {
     private long lastHeartBeatTime = 0;
 
     private RPCClient rpcClient = new RPCClient();
-//    private RPCServer rpcServer = new RPCServer(9000, this); //这里先随便写了个
+    private RPCServer rpcServer = new RPCServer(9000, this); //这里先随便写了个
 
     private HeartBeatTask heartBeatTask = new HeartBeatTask(this);
+
+    //这里用来取消scheduled tasks
+    private ScheduledFuture<?> scheduledHeartBeatTask;
 
 
     public NodeIMPL(String addr) {
@@ -115,21 +117,48 @@ public class NodeIMPL implements Node {
         this.consensus = new ConsensusIMPL(this);
     }
 
-    public void run() {
-        consensus = new ConsensusIMPL(this);
-        RaftThreadPool.scheduleWithFixedDelay(heartBeatTask, 1000);
+    @Override
+    public void init() {
+        if (started) {
+            return;
+        }
+        synchronized (this) {
+            if (started) {
+                return;
+            }
+            rpcServer.start();
 
+            consensus = new ConsensusIMPL(this);
+            LeaderElection leaderElection = new LeaderElection(this);
+
+            RaftThreadPool.submit(leaderElection);
+
+            LogEntry logEntry = logModule.getLast();
+            if (logEntry != null) {
+                currentTerm = logEntry.getTerm();
+            }
+
+            started = true;
+
+            LOGGER.info("start success, selfId : " + this.getAddr());
+        }
     }
 
     @Override
+    public void destroy() {
+        rpcServer.stop();
+    }
+
+
+    @Override
     public ReqVoteResult handleReqVote(ReqVoteParam param) {
-        logger.warning(String.format("request vote param info: %s", param));
+        LOGGER.warning(String.format("request vote param info: %s", param));
         return consensus.requestVote(param);
     }
 
     @Override
-    public AppEntryResult handlerAppEntry(AppEntryParam param) {
-        logger.warning(String.format("Append Entry param info: %s", param));
+    public AppEntryResult handleAppEntry(AppEntryParam param) {
+        LOGGER.warning(String.format("Append Entry param info: %s", param));
         return consensus.appendEntry(param);
     }
 

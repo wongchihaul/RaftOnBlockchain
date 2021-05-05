@@ -11,11 +11,11 @@ import raft.entity.ReqVoteResult;
  * @author wongchihaul
  */
 
-public interface Node {
+public interface Node extends LifeCycle {
 
     ReqVoteResult handleReqVote(ReqVoteParam param);
 
-    AppEntryResult handlerAppEntry(AppEntryParam param);
+    AppEntryResult handleAppEntry(AppEntryParam param);
 
     KVAck handleClientReq(KVReq req);
 
@@ -25,6 +25,5 @@ public interface Node {
      * @return
      */
     KVAck redirect(KVReq req);
-
 
 }

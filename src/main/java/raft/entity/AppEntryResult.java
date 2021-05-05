@@ -25,6 +25,8 @@ public class AppEntryResult implements Serializable {
      */
     boolean success;
 
+    String peerAddr;
+
     /**
      * Node returns false with its term
      *
@@ -32,7 +34,7 @@ public class AppEntryResult implements Serializable {
      * @return
      */
     public static AppEntryResult fail(NodeIMPL node) {
-        return AppEntryResult.builder().term(node.getCurrentTerm()).success(false).build();
+        return AppEntryResult.builder().peerAddr(node.getAddr()).term(node.getCurrentTerm()).success(false).build();
     }
 
     /**
@@ -42,6 +44,6 @@ public class AppEntryResult implements Serializable {
      * @return
      */
     public static AppEntryResult success(NodeIMPL node) {
-        return AppEntryResult.builder().term(node.getCurrentTerm()).success(true).build();
+        return AppEntryResult.builder().peerAddr(node.getAddr()).term(node.getCurrentTerm()).success(true).build();
     }
 }

@@ -1,7 +1,6 @@
 package raft.tasks;
 
 import raft.LogModule;
-import raft.common.Code;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.common.ReqType;
@@ -64,7 +63,7 @@ public class HeartBeatTask implements Runnable {
                     // Unknown ReqType
                     logger.warning(String.format("Incorrect request type for heartbeat response:\n %s", response.getReq()));
                 } else {
-                    if (!response.isResult()) {
+                    if (!((AppEntryResult) response.getResult()).isSuccess()) {
                         // here it should get term from appEntryResult
 //                        node.setCurrentTerm();
                         node.setStatus(NodeStatus.FOLLOWER);

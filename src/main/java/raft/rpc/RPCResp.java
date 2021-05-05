@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.function.Supplier;
 
 /**
  * return (RPCResp)RPCReq.Request + Result
@@ -18,10 +19,14 @@ import java.io.Serializable;
 @Setter
 @ToString
 @Builder
-public class RPCResp<T> implements Serializable {
-    boolean result;
+public class RPCResp<T> implements Serializable, Supplier<T> {
+    T result;
 
     RPCReq req;
 
 
+    @Override
+    public T get() {
+        return result;
+    }
 }
