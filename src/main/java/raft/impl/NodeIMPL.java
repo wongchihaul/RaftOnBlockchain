@@ -25,6 +25,7 @@ import redis.clients.jedis.Jedis;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
 
 
@@ -35,9 +36,10 @@ import java.util.logging.Logger;
 public class NodeIMPL implements Node {
 
 
-    public static final int HEARTBEAT_TICK = 1500;
+    public static final int HEARTBEAT_TICK = 125;
 
     public static final Logger logger = Logger.getLogger(NodeIMPL.class.getName());
+
 
     // START of Raft properties configuration
     /**
@@ -75,7 +77,10 @@ public class NodeIMPL implements Node {
      */
     private volatile Set<Peer> peerSet;
 
-    public volatile long preElection = 0;
+
+    public volatile long prevElectionTime = 0;
+    //the election timeouts are chosen randomly from a ﬁxed interval(150-300ms) as suggested
+    public volatile int electionTimeOut = 150;
 
     public volatile long preHeartBeat = 0;
     // END of Raft properties configuration
@@ -83,6 +88,7 @@ public class NodeIMPL implements Node {
 
     // START of Network and Redis configuration
     private String addr;
+    private Peer peer;
 
     Jedis jedis;
 
@@ -101,6 +107,7 @@ public class NodeIMPL implements Node {
 
     public NodeIMPL(String addr) {
         this.addr = addr;
+        this.peer = new Peer(addr);
         this.jedis = new Jedis(Peer.getIP(addr), Peer.getPort(addr));
         this.logModule = new LogModuleIMPL(this);
         this.peerSet = new HashSet<>();

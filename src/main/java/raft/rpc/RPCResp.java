@@ -19,8 +19,9 @@ import java.io.Serializable;
 @ToString
 @Builder
 public class RPCResp<T> implements Serializable {
+    boolean result;
 
     RPCReq req;
 
-    boolean result;
+
 }
