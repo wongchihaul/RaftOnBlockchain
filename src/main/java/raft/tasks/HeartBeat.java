@@ -58,7 +58,7 @@ public class HeartBeat implements Runnable {
             node.setPeerSet(peerSet);
         }
 
-        exs.shutdown();
+//        exs.shutdown();
     }
 
     AppEntryResult sendHBReq(Peer peer) {
