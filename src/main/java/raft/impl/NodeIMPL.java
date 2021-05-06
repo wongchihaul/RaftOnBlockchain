@@ -162,8 +162,33 @@ public class NodeIMPL implements Node {
         return consensus.appendEntry(param);
     }
 
-    @Override
     public KVAck handleClientReq(KVReq req) {
+        LOGGER.warning(String.format("handlerClientRequest handler %s operation", KVReq.Type.value(req.getType())));
+
+
+        if (status != NodeStatus.LEADER) {
+            LOGGER.warning("I not am leader , only invoke redirect method");
+            return redirect(req);
+        }
+
+        LogEntry logEntry = LogEntry.builder()
+                .command(Command.newBuilder().
+                        key(req.getKey()).
+                        value(req.getValue()).
+                        noobChain(req.getNoobChain()).
+                        build())
+                .term(currentTerm)
+                .build();
+        logModule.write(logEntry);
+//        final AtomicInteger success = new AtomicInteger(0);
+//        List<Future<Boolean>> futureList = new CopyOnWriteArrayList<>();
+        int count = 0;
+        //  复制到其他机器
+//        for (Peer peer : peerSet.getPeersWithOutSelf()) {
+//            // TODO check self and RaftThreadPool
+//            count++;
+//            // 并行发起 RPC 复制.
+//            futureList.add(replication(peer, logEntry));
         return null;
     }
 
