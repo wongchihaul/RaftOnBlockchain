@@ -1,5 +1,6 @@
 package raft.impl;
 
+import chainUtils.NoobChain;
 import client.KVAck;
 import client.KVReq;
 import lombok.Getter;
@@ -21,12 +22,12 @@ import raft.tasks.LeaderElection;
 import raft.tasks.Replication;
 import redis.clients.jedis.Jedis;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ScheduledFuture;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static raft.concurrent.RaftConcurrent.RaftThreadPool;
 
 
@@ -191,6 +192,9 @@ public class NodeIMPL implements Node {
         LOGGER.warning(String.format("Append Entry param info: %s", param));
         return consensus.appendEntry(param);
     }
+    public boolean verifyChain(NoobChain noobChain){
+        return true;
+    }
 
     public KVAck handleClientReq(KVReq req) {
         LOGGER.warning(String.format("handlerClientRequest handler %s operation", KVReq.Type.value(req.getType())));
@@ -201,45 +205,102 @@ public class NodeIMPL implements Node {
             return redirect(req);
         }
 
-        LogEntry logEntry = LogEntry.builder()
-                .transaction(Transaction.newBuilder().
-                        key(req.getKey()).
-                        value(req.getValue()).
-                        noobChain(req.getNoobChain()).
-                        build())
-                .term(currentTerm)
-                .build();
-        logModule.write(logEntry);
 
-        var replicaResult = RaftThreadPool.submit(new Replication(this, logEntry));
+        if (verifyChain(req.getNoobChain())){
+            LogEntry logEntry = LogEntry.builder()
+                    .transaction(Transaction.builder().
+                            key(req.getKey()).
+                            value(req.getValue()).
+                            noobChain(req.getNoobChain()).
+                            build())
+                    .term(currentTerm)
+                    .build();
+            logModule.write(logEntry);
+            final AtomicInteger success = new AtomicInteger(0);
 
-        while (!replicaResult.isDone()) {
-            // wait
+            List<Future<Boolean>> futureList = new CopyOnWriteArrayList<>();
+
+            int count = 0;
+            //  复制到其他机器
+            for (Peer peer : peerSet) {
+                // TODO check self and RaftThreadPool
+                count++;
+                // 并行发起 RPC 复制.
+                futureList.add(replication(peer, logEntry));
+            }
+            CountDownLatch latch = new CountDownLatch(futureList.size());
+            List<Boolean> resultList = new CopyOnWriteArrayList<>();
+
+            getRPCAppendResult(futureList, latch, resultList);
+            try {
+                latch.await(4000, MILLISECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            for (Boolean aBoolean : resultList) {
+                if (aBoolean) {
+                    success.incrementAndGet();
+                }
+            }
+            List<Long> matchIndexList = new ArrayList<>(latestIndexes.values());
+            // 小于 2, 没有意义
+            int median = 0;
+            if (matchIndexList.size() >= 2) {
+                Collections.sort(matchIndexList);
+                median = matchIndexList.size() / 2;
+            }
+            Long N = matchIndexList.get(median);
+            if (N > commitIndex) {
+                LogEntry entry = logModule.read(N);
+                if (entry != null && entry.getTerm() == currentTerm) {
+                    commitIndex = N;
+                }
+            }
+            //  响应客户端(成功一半)
+            if (success.get() >= (count / 2)) {
+                // 更新
+                commitIndex = logEntry.getIndex();
+                //  应用到状态机
+                getStateMachine().apply(logEntry);
+                lastApplied = commitIndex;
+
+              //  LOGGER.info("success apply local state machine,  logEntry info : {}", logEntry);
+                // 返回成功.
+                return KVAck.builder().success(true).build();
+            } else {
+                // 回滚已经提交的日志.
+                logModule.removeLogs(logEntry.getIndex());
+                //LOGGER.warn("fail apply local state  machine,  logEntry info : {}", logEntry);
+                // TODO 不应用到状态机,但已经记录到日志中.由定时任务从重试队列取出,然后重复尝试,当达到条件时,应用到状态机.
+                // 这里应该返回错误, 因为没有成功复制过半机器.
+                return KVAck.builder().success(false).build();
+            }
         }
-
-        // in case interrupted before applying to state machine
-        if (this.commitIndex == logEntry.getIndex() && this.lastApplied == logEntry.getIndex()) {
-            return KVAck.builder().success(true).build();
-        } else {
-            return KVAck.builder().success(false).build();
-        }
-
-//        final AtomicInteger success = new AtomicInteger(0);
-//        List<Future<Boolean>> futureList = new CopyOnWriteArrayList<>();
-
-//        int count = 0;
-
-        //  复制到其他机器
-//        for (Peer peer : peerSet.getPeersWithOutSelf()) {
-//            // TODO check self and RaftThreadPool
-//            count++;
-//            // 并行发起 RPC 复制.
-//            futureList.add(replication(peer, logEntry));
-
-//        return null;
-
+        return KVAck.builder().success(false).build();
     }
+    private void getRPCAppendResult(List<Future<Boolean>> futureList, CountDownLatch latch, List<Boolean> resultList) {
+        for (Future<Boolean> future : futureList) {
+            RaftThreadPool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        resultList.add(future.get(3000, MILLISECONDS));
+                    } catch (CancellationException | TimeoutException | ExecutionException | InterruptedException e) {
+                        e.printStackTrace();
+                        resultList.add(false);
+                    } finally {
+                        latch.countDown();
+                    }
+                }
+            });
+        }
+    }
+    /** 复制到其他机器  */
+    public Future<Boolean> replication(Peer peer, LogEntry entry) {
 
+        return null;
+    }
     @Override
     public KVAck redirect(KVReq req) {
         RPCReq redirectReq = RPCReq.builder()
@@ -250,4 +311,5 @@ public class NodeIMPL implements Node {
         RPCResp resp = rpcClient.sendReq(redirectReq);
         return (KVAck) resp.getResult();
     }
+
 }
