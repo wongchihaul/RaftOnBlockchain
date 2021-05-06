@@ -17,7 +17,7 @@ public class LogEntry implements Serializable, Comparable {
 
     private long index;
 
-    private Command command;
+    private Transaction transaction;
 
 
     @Override
@@ -43,12 +43,12 @@ public class LogEntry implements Serializable, Comparable {
         LogEntry logEntry = (LogEntry) o;
         return term == logEntry.getTerm() &&
                 index == logEntry.getIndex() &&
-                command.equals(logEntry.getCommand());
+                transaction.equals(logEntry.getTransaction());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(term, index, command);
+        return Objects.hash(term, index, transaction);
     }
 
 }

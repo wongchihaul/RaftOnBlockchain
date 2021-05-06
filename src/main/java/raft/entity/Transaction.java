@@ -1,10 +1,10 @@
 package raft.entity;
 
+import chainUtils.NoobChain;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import chainUtils.NoobChain;
 
 import java.util.Objects;
 
@@ -16,18 +16,19 @@ import java.util.Objects;
 @Setter
 @ToString
 @Builder
-public class Command {
+public class Transaction {
 
     public String key;
     public NoobChain noobChain;
     public String value;
-    public Command(String key, String value,NoobChain noobChain) {
+
+    public Transaction(String key, String value, NoobChain noobChain) {
         this.key = key;
         this.value = value;
-        this.noobChain=noobChain;
+        this.noobChain = noobChain;
     }
 
-    private Command(Builder builder) {
+    private Transaction(Builder builder) {
         setKey(builder.key);
         setNoobChain(builder.noobChain);
         setValue(builder.value);
@@ -46,10 +47,10 @@ public class Command {
         if (o == null || this.getClass() != o.getClass()) {
             return false;
         }
-        Command command = (Command) o;
-        return key.equals(command.key) &&
-                value.equals(command.value)&&
-                noobChain.equals((command.noobChain));
+        Transaction transaction = (Transaction) o;
+        return key.equals(transaction.key) &&
+                value.equals(transaction.value) &&
+                noobChain.equals((transaction.noobChain));
     }
 
     @Override
@@ -68,6 +69,7 @@ public class Command {
             key = val;
             return this;
         }
+
         public Builder noobChain(NoobChain val) {
             noobChain = val;
             return this;
@@ -78,8 +80,8 @@ public class Command {
             return this;
         }
 
-        public Command build() {
-            return new Command(this);
+        public Transaction build() {
+            return new Transaction(this);
         }
 
 

@@ -9,6 +9,7 @@ import raft.entity.ReqVoteParam;
 import raft.entity.ReqVoteResult;
 import raft.impl.NodeIMPL;
 import raft.rpc.RPCReq;
+import raft.rpc.RPCResp;
 
 import java.util.Random;
 import java.util.Set;
@@ -84,7 +85,7 @@ public class LeaderElection implements Runnable {
 
             CompletableFuture[] cfs = peerSet.stream()
                     .map(peer -> CompletableFuture.supplyAsync(() -> sendVoteReq(peer), this.exs)
-                            .completeOnTimeout(ReqVoteResult.fail(null), timeout, TimeUnit.MILLISECONDS)
+                            .completeOnTimeout(null, timeout, TimeUnit.MILLISECONDS)
                             .thenAccept(voteResult -> handleVoteResp(voteResult)))
                     .toArray(CompletableFuture[]::new);
 
@@ -108,7 +109,8 @@ public class LeaderElection implements Runnable {
                 ScheduledFuture<?> scheduledHB = scheduler.scheduleAtFixedRate(heartBeat, 0, NodeIMPL.HEARTBEAT_TICK, TimeUnit.MILLISECONDS);
                 node.setScheduledHeartBeatTask(scheduledHB);
 
-                node.setLeader(node.getPeer()); //set itself to leader
+                //set itself to leader
+                node.setLeader(node.getPeer());
 
             } else {
                 // no leader elected yet and start over
@@ -119,7 +121,7 @@ public class LeaderElection implements Runnable {
     }
 
 
-    ReqVoteResult sendVoteReq(Peer peer) {
+    RPCResp sendVoteReq(Peer peer) {
         LogModule logModule = node.getLogModule();
         long lastTerm = 0;
         LogEntry currLast = logModule.getLast();
@@ -140,11 +142,18 @@ public class LeaderElection implements Runnable {
                 .addr(peer.getAddr())
                 .build();
         //get the RPC response from client, and add the response to future list
-        ReqVoteResult result = (ReqVoteResult) node.getRpcClient().sendReq(rpcReq).getResult();
-        return result;
+        RPCResp voteResp = node.getRpcClient().sendReq(rpcReq);
+        return voteResp;
     }
 
-    void handleVoteResp(ReqVoteResult voteResult) {
+    void handleVoteResp(RPCResp voteResp) {
+        if (voteResp == null) {
+            return;
+        }
+        ReqVoteResult voteResult = (ReqVoteResult) voteResp.getResult();
+        if (voteResult == null) {
+            return;
+        }
         if (voteResult.isVoteGranted()) {
             votesCount.incrementAndGet();
         } else {

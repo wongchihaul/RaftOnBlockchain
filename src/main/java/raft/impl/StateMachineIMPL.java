@@ -3,8 +3,8 @@ package raft.impl;
 import raft.StateMachine;
 import raft.common.Peer;
 import raft.common.RDBParser;
-import raft.entity.Command;
 import raft.entity.LogEntry;
+import raft.entity.Transaction;
 import redis.clients.jedis.Jedis;
 
 import java.io.File;
@@ -51,12 +51,12 @@ public class StateMachineIMPL implements StateMachine {
     // TODO: I don't think synchronized is needed since Redis is single-threaded.
     @Override
     public void apply(LogEntry logEntry) {
-        Command command = logEntry.getCommand();
-        if (command == null) {
+        Transaction transaction = logEntry.getTransaction();
+        if (transaction == null) {
             throw new IllegalArgumentException(logEntry + ": Command cannot be null");
         }
-        String key = command.getKey();
-        String value = command.getValue();
+        String key = transaction.getKey();
+        String value = transaction.getValue();
         jedis.setnx(key, value);
         // also save logs, because state machine module and log entry module share same jedis instance
         // should be optimized, e.g. use disk-based database, if data becomes huge.

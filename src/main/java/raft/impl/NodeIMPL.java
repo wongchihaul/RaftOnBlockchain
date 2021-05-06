@@ -10,14 +10,19 @@ import raft.LogModule;
 import raft.Node;
 import raft.common.NodeStatus;
 import raft.common.Peer;
+import raft.common.ReqType;
 import raft.entity.*;
 import raft.rpc.RPCClient;
+import raft.rpc.RPCReq;
+import raft.rpc.RPCResp;
 import raft.rpc.RPCServer;
 import raft.tasks.HeartBeatTask;
 import raft.tasks.LeaderElection;
+import raft.tasks.Replication;
 import redis.clients.jedis.Jedis;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.logging.Logger;
@@ -33,6 +38,10 @@ public class NodeIMPL implements Node {
 
 
     public static final int HEARTBEAT_TICK = 125;
+
+    public static final int ELECTION_TIMEOUT = 150;
+
+    public static final int REPLICATION_TIMEOUT = 4000;
 
     public static final Logger LOGGER = Logger.getLogger(NodeIMPL.class.getName());
 
@@ -65,9 +74,31 @@ public class NodeIMPL implements Node {
 
     volatile Peer leader = null;
 
-    long commitIndex = 0;
+    /* ============ 所有服务器上经常变的 ============= */
 
-    long lastApplied = 0;
+    /**
+     * 已知的最大的已经被提交的日志条目的索引值
+     */
+    volatile long commitIndex;
+
+    /**
+     * 最后被应用到状态机的日志条目索引值（初始化为 0，持续递增)
+     */
+    volatile long lastApplied = 0;
+
+
+
+    /* ========== 在领导人里经常改变的(选举后重新初始化) ================== */
+
+    /**
+     * 对于每一个服务器，需要发送给他的下一个日志条目的索引值（初始化为领导人最后索引值加一）
+     */
+    Map<Peer, Long> nextIndexes;
+
+    /**
+     * 对于每一个服务器，已经复制给他的日志的最高索引值
+     */
+    Map<Peer, Long> latestIndexes;
 
     /**
      * Set of peers, excluding self
@@ -78,7 +109,6 @@ public class NodeIMPL implements Node {
     public volatile long prevElectionTime = 0;
     //the election timeouts are chosen randomly from a ﬁxed interval(150-300ms) as suggested
     public volatile int electionTimeOut = 150;
-    public static final int ELECTION_TIMEOUT = 150;
 
 
     public volatile long preHeartBeat = 0;
@@ -172,7 +202,7 @@ public class NodeIMPL implements Node {
         }
 
         LogEntry logEntry = LogEntry.builder()
-                .command(Command.newBuilder().
+                .transaction(Transaction.newBuilder().
                         key(req.getKey()).
                         value(req.getValue()).
                         noobChain(req.getNoobChain()).
@@ -180,20 +210,44 @@ public class NodeIMPL implements Node {
                 .term(currentTerm)
                 .build();
         logModule.write(logEntry);
+
+        var replicaResult = RaftThreadPool.submit(new Replication(this, logEntry));
+
+        while (!replicaResult.isDone()) {
+            // wait
+        }
+
+        // in case interrupted before applying to state machine
+        if (this.commitIndex == logEntry.getIndex() && this.lastApplied == logEntry.getIndex()) {
+            return KVAck.builder().success(true).build();
+        } else {
+            return KVAck.builder().success(false).build();
+        }
+
 //        final AtomicInteger success = new AtomicInteger(0);
 //        List<Future<Boolean>> futureList = new CopyOnWriteArrayList<>();
-        int count = 0;
+
+//        int count = 0;
+
         //  复制到其他机器
 //        for (Peer peer : peerSet.getPeersWithOutSelf()) {
 //            // TODO check self and RaftThreadPool
 //            count++;
 //            // 并行发起 RPC 复制.
 //            futureList.add(replication(peer, logEntry));
-        return null;
+
+//        return null;
+
     }
 
     @Override
     public KVAck redirect(KVReq req) {
-        return null;
+        RPCReq redirectReq = RPCReq.builder()
+                .addr(this.getLeader().getAddr())
+                .param(req)
+                .requestType(ReqType.KV)
+                .build();
+        RPCResp resp = rpcClient.sendReq(redirectReq);
+        return (KVAck) resp.getResult();
     }
 }

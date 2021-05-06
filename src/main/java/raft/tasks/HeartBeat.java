@@ -7,6 +7,7 @@ import raft.entity.AppEntryParam;
 import raft.entity.AppEntryResult;
 import raft.impl.NodeIMPL;
 import raft.rpc.RPCReq;
+import raft.rpc.RPCResp;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -46,11 +47,16 @@ public class HeartBeat implements Runnable {
 
         CompletableFuture[] cfs = peerSet.stream()
                 .map(peer -> CompletableFuture.supplyAsync(() -> sendHBReq(peer), this.exs)
-                        .completeOnTimeout(AppEntryResult.fail(null), timeout, TimeUnit.MILLISECONDS).
-                                thenAccept(entryResult -> handleHBResp(entryResult)))
+                        .completeOnTimeout(null, timeout, TimeUnit.MILLISECONDS)
+                        .thenAccept(entryResult -> handleHBResp(entryResult)))
                 .toArray(CompletableFuture[]::new);
 
         CompletableFuture.allOf(cfs).join();
+
+        if (node.getStatus() == NodeStatus.FOLLOWER) {
+            RaftThreadPool.submit(new LeaderElection(node));
+            return;
+        }
 
         // remove dead peers
         if (node.getStatus() == NodeStatus.LEADER) {
@@ -61,31 +67,39 @@ public class HeartBeat implements Runnable {
 //        exs.shutdown();
     }
 
-    AppEntryResult sendHBReq(Peer peer) {
+    RPCResp sendHBReq(Peer peer) {
         AppEntryParam appEntryParam = AppEntryParam.builder()
                 .term(node.getCurrentTerm())
                 .leaderId(node.getAddr())
                 .logEntries(null)
                 .build();
 
-        RPCReq req = RPCReq.builder()
+        RPCReq rpcReq = RPCReq.builder()
                 .addr(peer.getAddr())
                 .param(appEntryParam)
                 .requestType(ReqType.APP_ENTRY)
                 .build();
         // Send heartbeats to all peers exclude self
-        AppEntryResult entryResult = (AppEntryResult) node.getRpcClient().sendReq(req).getResult();
-        return entryResult;
+        RPCResp rpcResp = node.getRpcClient().sendReq(rpcReq);
+        return rpcResp;
     }
 
-    void handleHBResp(AppEntryResult entryResult) {
+    void handleHBResp(RPCResp rpcResp) {
+        if (rpcResp == null) {
+            return;
+        }
+        AppEntryResult entryResult = (AppEntryResult) rpcResp.getResult();
+
+        if (entryResult == null) {
+            return;
+        }
+
         if (entryResult.isSuccess()) {
             alivePeers.add(new Peer(entryResult.getPeerAddr()));
         } else {
             // peer's term > self term and start a new election
             node.setStatus(NodeStatus.FOLLOWER);
             node.getScheduledHeartBeatTask().cancel(true);
-            RaftThreadPool.submit(new LeaderElection(node));
         }
     }
 
