@@ -16,8 +16,10 @@ public class NoobChain {
     }
 
     // show the blockchain
-    public void show() {
-        blockchain.forEach(b -> System.out.println(b.blockJson()));
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        blockchain.forEach(b -> sb.append(b.blockJson()));
+        return sb.toString();
     }
-
 }

@@ -1,12 +1,9 @@
 package raft.tasks;
 
-import org.checkerframework.checker.units.qual.A;
-import org.checkerframework.checker.units.qual.C;
 import raft.LogModule;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.common.ReqType;
-import raft.concurrent.RaftThread;
 import raft.concurrent.RaftThreadPool;
 import raft.entity.LogEntry;
 import raft.entity.ReqVoteParam;
@@ -18,7 +15,8 @@ import raft.rpc.RPCResp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -40,7 +38,7 @@ import java.util.logging.Logger;
 
 public class LeaderElectionTask implements Runnable{
 
-    private NodeIMPL node;
+    private final NodeIMPL node;
     private final static Logger LOGGER = Logger.getLogger(LeaderElectionTask.class.getName());
     private HeartBeatTask HeartBeatTask;
 

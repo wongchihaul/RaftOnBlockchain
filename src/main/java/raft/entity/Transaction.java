@@ -22,23 +22,6 @@ public class Transaction {
     public NoobChain noobChain;
     public String value;
 
-    public Transaction(String key, String value, NoobChain noobChain) {
-        this.key = key;
-        this.value = value;
-        this.noobChain = noobChain;
-    }
-
-    private Transaction(Builder builder) {
-        setKey(builder.key);
-        setNoobChain(builder.noobChain);
-        setValue(builder.value);
-    }
-
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -56,34 +39,5 @@ public class Transaction {
     @Override
     public int hashCode() {
         return Objects.hash(key, value);
-    }
-    public static final class Builder {
-
-        private String key;
-        private String value;
-        private NoobChain noobChain;
-        private Builder() {
-        }
-
-        public Builder key(String val) {
-            key = val;
-            return this;
-        }
-
-        public Builder noobChain(NoobChain val) {
-            noobChain = val;
-            return this;
-        }
-
-        public Builder value(String val) {
-            value = val;
-            return this;
-        }
-
-        public Transaction build() {
-            return new Transaction(this);
-        }
-
-
     }
 }

@@ -10,21 +10,18 @@ public class RPCClient {
     public static final Logger logger = Logger.getLogger(RPCClient.class.getName());
 
     /**
-     * default timeout
-     */
-    private int timeout = 120000;
-
-    /**
      * Initiate a RPC Client
      */
-    private static RpcClient rpcClient = new RpcClient();
+    private static final RpcClient rpcClient = new RpcClient();
+    /**
+     * default timeout
+     */
+    private final int timeout = 120000;
 
     static {
         rpcClient.init();
     }
 
-    public RPCClient() {
-    }
 
     public RPCResp sendReq(RPCReq rpcReq) {
         return sendReq(rpcReq, this.timeout);

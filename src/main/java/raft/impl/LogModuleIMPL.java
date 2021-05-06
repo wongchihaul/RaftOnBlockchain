@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import raft.LogModule;
 import raft.entity.LogEntry;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.util.UUID;
@@ -11,28 +12,34 @@ import java.util.UUID;
 public class LogModuleIMPL implements LogModule {
     NodeIMPL node;
     String uuid;
-    Jedis jedis;
+    JedisPool jedisPool;
 
     public LogModuleIMPL(NodeIMPL node) {
         this.node = node;
-        this.jedis = node.getJedis();
+        this.jedisPool = node.getJedisPool();
         this.uuid = UUID.randomUUID().toString().replace("-", "");
     }
 
 
     @Override
     public void write(LogEntry logEntry) {
+        Jedis jedis = null;
         try {
             String entry = JSON.toJSONString(logEntry);
+            jedis = jedisPool.getResource();
             jedis.lpush(uuid, entry);
         } catch (JedisException e) {
             e.printStackTrace();
+        } finally {
+            jedis.close();
         }
     }
 
     @Override
     public LogEntry read(Long index) {
+        Jedis jedis = null;
         try {
+            jedis = jedisPool.getResource();
             String entry = jedis.lindex(uuid, index);
             if (entry == null) {
                 return null;
@@ -40,6 +47,8 @@ public class LogModuleIMPL implements LogModule {
             return JSON.parseObject(entry, LogEntry.class);
         } catch (JedisException e) {
             e.printStackTrace();
+        } finally {
+            jedis.close();
         }
         return null;
     }
@@ -51,10 +60,14 @@ public class LogModuleIMPL implements LogModule {
      */
     @Override
     public void removeLogs(Long startIndex) {
+        Jedis jedis = null;
         try {
+            jedis = jedisPool.getResource();
             jedis.ltrim(uuid, 0, startIndex - 1);
         } catch (JedisException e) {
             e.printStackTrace();
+        } finally {
+            jedis.close();
         }
     }
 
@@ -66,6 +79,16 @@ public class LogModuleIMPL implements LogModule {
     // start from 1
     @Override
     public Long getLastIndex() {
-        return jedis.llen(uuid);
+        Jedis jedis = null;
+        Long lastIndex = null;
+        try {
+            jedis = jedisPool.getResource();
+            lastIndex = jedis.llen(uuid) == 0 ? 1 : jedis.llen(uuid);
+        } catch (JedisException e) {
+            e.printStackTrace();
+        } finally {
+            jedis.close();
+        }
+        return lastIndex;
     }
 }

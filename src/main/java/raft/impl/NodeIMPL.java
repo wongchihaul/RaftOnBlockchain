@@ -19,7 +19,7 @@ import raft.rpc.RPCServer;
 import raft.tasks.HeartBeatTask;
 import raft.tasks.LeaderElection;
 import raft.tasks.Replication;
-import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -28,6 +28,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.logging.Logger;
 
 import static raft.concurrent.RaftConcurrent.RaftThreadPool;
+import static raft.concurrent.RedisPool.setConfig;
 
 
 @Getter
@@ -119,7 +120,7 @@ public class NodeIMPL implements Node {
     private String addr;
     private Peer peer;
 
-    Jedis jedis;
+    JedisPool jedisPool;
 
     private StateMachineIMPL stateMachine;
     // END of Network and Redis configuration
@@ -140,7 +141,7 @@ public class NodeIMPL implements Node {
     public NodeIMPL(String addr) {
         this.addr = addr;
         this.peer = new Peer(addr);
-        this.jedis = new Jedis(Peer.getIP(addr), Peer.getPort(addr));
+        this.jedisPool = new JedisPool(setConfig(), Peer.getIP(addr), Peer.getPort(addr));
         this.logModule = new LogModuleIMPL(this);
         this.peerSet = new HashSet<>();
         this.stateMachine = new StateMachineIMPL(this);
@@ -202,7 +203,7 @@ public class NodeIMPL implements Node {
         }
 
         LogEntry logEntry = LogEntry.builder()
-                .transaction(Transaction.newBuilder().
+                .transaction(Transaction.builder().
                         key(req.getKey()).
                         value(req.getValue()).
                         noobChain(req.getNoobChain()).

@@ -6,6 +6,8 @@ import raft.common.RDBParser;
 import raft.entity.LogEntry;
 import raft.entity.Transaction;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.File;
 import java.util.logging.Logger;
@@ -17,11 +19,10 @@ public class StateMachineIMPL implements StateMachine {
     public static final java.util.logging.Logger logger = Logger.getLogger(StateMachineIMPL.class.getName());
 
     NodeIMPL node;
-    Jedis jedis;
-    public static String workspace = "./redis_raft/";
+    JedisPool jedisPool;
 
     /**
-     * "./redis_raft/${port}.dump.rdb"
+     * "redisConfigs/redis-${port}/dump.rdb"
      */
     String rdbPath;
 
@@ -30,22 +31,8 @@ public class StateMachineIMPL implements StateMachine {
 
     public StateMachineIMPL(NodeIMPL node) {
         this.node = node;
-        jedis = node.getJedis();
-        rdbPath = workspace + Peer.getIP(node.getAddr()) + ".dump.rdb";
-//        confPath = workspace + Peer.getIP(node.getAddr()) + ".conf";
-//        synchronized (this) {
-//            File file = new File(confPath);
-//            if(!file.exists()){
-//                try {
-//                    file.createNewFile();
-//                    logger.info(String.format("File %s create success", node.getAddr()));
-//                } catch (IOException e) {
-//                    logger.severe(String.format("File %s create failed", node.getAddr()));
-//                }
-//            } else {
-//                logger.info(String.format("File %s already exists", node.getAddr()));
-//            }
-//        }
+        jedisPool = node.getJedisPool();
+        rdbPath = "redisConfigs/redis-" + Peer.getPort(node.getAddr()) + "/dump.rdb";
     }
 
     // TODO: I don't think synchronized is needed since Redis is single-threaded.
@@ -57,10 +44,19 @@ public class StateMachineIMPL implements StateMachine {
         }
         String key = transaction.getKey();
         String value = transaction.getValue();
-        jedis.setnx(key, value);
-        // also save logs, because state machine module and log entry module share same jedis instance
-        // should be optimized, e.g. use disk-based database, if data becomes huge.
-        jedis.save();
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            jedis.setnx(key, value);
+            // also save logs, because state machine module and log entry module share same jedis instance
+            // should be optimized, e.g. use disk-based database, if data becomes huge.
+            jedis.save();
+        } catch (JedisException e) {
+            e.printStackTrace();
+        } finally {
+            jedis.close();
+        }
+
     }
 
 
