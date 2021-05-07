@@ -3,7 +3,6 @@ package raft.impl;
 import lombok.Getter;
 import lombok.Setter;
 import raft.Consensus;
-import raft.common.Code;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.entity.*;
@@ -53,8 +52,10 @@ public class ConsensusIMPL implements Consensus {
             if (node.getVotedFor() == null || node.getVotedFor().equals(param.getCandidateId())) {
 
                 if (node.getLogModule().getLast() != null) {
-                    if (param.getTerm() < node.getLogModule().getLast().getTerm()
-                            || param.getLastLogIndex() < node.getLogModule().getLastIndex()) {
+                    if (param.getTerm() < node.getLogModule().getLast().getTerm()) {
+                        return ReqVoteResult.fail(node);
+                    }
+                    if (param.getLastLogIndex() < node.getLogModule().getLastIndex()) {
                         return ReqVoteResult.fail(node);
                     }
                 }

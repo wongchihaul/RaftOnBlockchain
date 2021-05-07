@@ -122,6 +122,7 @@ public class LeaderElection implements Runnable {
 
 
     RPCResp sendVoteReq(Peer peer) {
+        LOGGER.info(node.getAddr() + " is sending req");
         LogModule logModule = node.getLogModule();
         long lastTerm = 0;
         LogEntry currLast = logModule.getLast();
@@ -141,12 +142,14 @@ public class LeaderElection implements Runnable {
                 .param(reqVoteParam)
                 .addr(peer.getAddr())
                 .build();
+        LOGGER.info(rpcReq.toString());
         //get the RPC response from client, and add the response to future list
         RPCResp voteResp = node.getRpcClient().sendReq(rpcReq);
         return voteResp;
     }
 
     void handleVoteResp(RPCResp voteResp) {
+        LOGGER.info(node.getAddr() + " is handling resp");
         if (voteResp == null) {
             return;
         }

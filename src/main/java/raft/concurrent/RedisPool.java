@@ -111,7 +111,7 @@ public class RedisPool {
             nodeList.add(nodeIMPL);
         }
 
-        nodeList.forEach(node -> node.init());
+        nodeList.forEach(NodeIMPL::init);
 
         try {
             Thread.sleep(1000 * 4);
@@ -129,7 +129,7 @@ public class RedisPool {
 
         nodeIMPL = nodeList.get(2);
         StateMachineIMPL stateMachineIMPL = new StateMachineIMPL(nodeIMPL);
-        System.out.println(stateMachineIMPL.getVal("1_1034"));
+        System.out.println(stateMachineIMPL.getVal("1_034"));
 
     }
 

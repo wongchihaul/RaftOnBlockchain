@@ -1,10 +1,9 @@
 package raft.rpc;
 
 import client.KVReq;
-import com.alipay.remoting.AsyncContext;
 import com.alipay.remoting.BizContext;
 import com.alipay.remoting.rpc.RpcServer;
-import com.alipay.remoting.rpc.protocol.AbstractUserProcessor;
+import com.alipay.remoting.rpc.protocol.SyncUserProcessor;
 import raft.entity.AppEntryParam;
 import raft.entity.ReqVoteParam;
 import raft.impl.NodeIMPL;
@@ -20,10 +19,10 @@ public class RPCServer {
     public RPCServer(int port, NodeIMPL node) {
         this.node = node;
         rpcServer = new RpcServer(port);
-        rpcServer.registerUserProcessor(new AbstractUserProcessor<RPCReq>() {
-            @Override
-            public void handleRequest(BizContext bizContext, AsyncContext asyncContext, RPCReq rpcReq) {
-            }
+        rpcServer.registerUserProcessor(new SyncUserProcessor<RPCReq>() {
+//            @Override
+//            public void handleRequest(BizContext bizContext, AsyncContext asyncContext, RPCReq rpcReq) {
+//            }
 
             @Override
             public RPCResp handleRequest(BizContext bizContext, RPCReq rpcReq) {
