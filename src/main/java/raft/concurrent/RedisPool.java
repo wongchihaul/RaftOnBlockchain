@@ -1,8 +1,12 @@
 package raft.concurrent;
 
+import raft.common.Peer;
+import raft.common.PeerSet;
 import raft.impl.NodeIMPL;
 import raft.impl.StateMachineIMPL;
 import redis.clients.jedis.JedisPoolConfig;
+
+import java.util.ArrayList;
 
 public class RedisPool {
 
@@ -94,9 +98,36 @@ public class RedisPool {
 //
 //        }
 
-        NodeIMPL nodeIMPL = new NodeIMPL("localhost:6380");
-        nodeIMPL.init();
-//        nodeIMPL.getJedis().save();
+        ArrayList<NodeIMPL> nodeList = new ArrayList<>();
+        NodeIMPL nodeIMPL = null;
+        for (int i = 6380; i <= 6384; i++) {
+            String addr = "localhost:" + i;
+            Peer peer = new Peer(addr);
+            PeerSet.peerSet.add(peer);
+        }
+        for (int i = 6380; i <= 6384; i++) {
+            String addr = "localhost:" + i;
+            nodeIMPL = new NodeIMPL(addr);
+            nodeList.add(nodeIMPL);
+        }
+
+        nodeList.forEach(node -> node.init());
+
+        try {
+            Thread.sleep(1000 * 4);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        nodeList.forEach(node -> System.out.println(node.getLeader()));
+
+        try {
+            Thread.sleep(1000 * 4);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        nodeIMPL = nodeList.get(2);
         StateMachineIMPL stateMachineIMPL = new StateMachineIMPL(nodeIMPL);
         System.out.println(stateMachineIMPL.getVal("1_1034"));
 

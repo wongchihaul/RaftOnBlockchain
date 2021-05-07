@@ -98,7 +98,7 @@ public class LeaderElection implements Runnable {
                         "follower");
                 return;
             }
-
+            LOGGER.info("votesCount: " + votesCount.get() + 1 + "peer numer: " + (node.getPeerSet().size() + 1) / 2);
             //check votes from a majority of the servers, add vote from itself
             if (votesCount.get() + 1 > (node.getPeerSet().size() + 1) / 2) {
                 LOGGER.info("The Node " + node.getAddr() + " becomes leader");
@@ -113,7 +113,7 @@ public class LeaderElection implements Runnable {
                 node.setLeader(node.getPeer());
 
             } else {
-                // no leader elected yet and start over
+                LOGGER.info("no leader elected yet and start over");
                 node.setVotedFor(null);
                 startElection();
             }

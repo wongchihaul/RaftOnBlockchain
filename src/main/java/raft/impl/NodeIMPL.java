@@ -21,12 +21,12 @@ import raft.tasks.LeaderElection;
 import raft.tasks.Replication;
 import redis.clients.jedis.JedisPool;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.logging.Logger;
 
+import static raft.common.PeerSet.getOthers;
 import static raft.concurrent.RaftConcurrent.RaftThreadPool;
 import static raft.concurrent.RedisPool.setConfig;
 
@@ -143,7 +143,7 @@ public class NodeIMPL implements Node {
         this.peer = new Peer(addr);
         this.jedisPool = new JedisPool(setConfig(), Peer.getIP(addr), Peer.getPort(addr));
         this.logModule = new LogModuleIMPL(this);
-        this.peerSet = new HashSet<>();
+        this.peerSet = getOthers(this.peer);
         this.stateMachine = new StateMachineIMPL(this);
         this.consensus = new ConsensusIMPL(this);
     }
@@ -160,6 +160,7 @@ public class NodeIMPL implements Node {
             rpcServer.start();
 
             consensus = new ConsensusIMPL(this);
+
             LeaderElection leaderElection = new LeaderElection(this);
 
             RaftThreadPool.submit(leaderElection);
