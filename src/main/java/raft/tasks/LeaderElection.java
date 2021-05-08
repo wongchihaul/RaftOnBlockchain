@@ -124,7 +124,7 @@ public class LeaderElection implements Runnable {
 
                 } else {
                     waitForAWhile(curTime1, timeout);
-
+                    votesCount[0].set(0);
                     System.out.println("no leader elected yet and start over");
                     node.setVotedFor(null);
                     startElection();
@@ -132,6 +132,7 @@ public class LeaderElection implements Runnable {
             } else {
                 waitForAWhile(curTime1, timeout);
                 if (PeerSet.leader == null) {
+                    votesCount[0].set(0);
                     node.setLeader(null);
                     startElection();
                 }
@@ -177,7 +178,7 @@ public class LeaderElection implements Runnable {
                 .addr(peer.getAddr())
                 .build();
 
-        System.out.println(rpcReq.toString());
+//        System.out.println(rpcReq.toString());
 
         //get the RPC response from client, and add the response to future list
         RPCResp voteResp = node.getRpcClient().sendReq(rpcReq);
@@ -189,7 +190,7 @@ public class LeaderElection implements Runnable {
             return;
         }
         ReqVoteResult voteResult = (ReqVoteResult) voteResp.getResult();
-        System.out.println("voteResult:" + voteResult);
+//        System.out.println("voteResult:" + voteResult);
         if (voteResult == null) {
             return;
         }

@@ -70,7 +70,7 @@ public class RPCServer {
                 logger.severe("Unsupported request type");
         }
 
-        System.out.println(node.getAddr() + " is sending back RPC response");
+//        System.out.println(node.getAddr() + " is sending back RPC response");
         return RPCResp.builder()
                 .req(rpcReq)
                 .result(result)
