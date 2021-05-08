@@ -1,8 +1,9 @@
 package chainUtils;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class NoobChain {
+public class NoobChain implements Serializable {
 
     public static ArrayList<Block> blockchain = new ArrayList<>();
 

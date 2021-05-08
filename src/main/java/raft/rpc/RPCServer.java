@@ -11,6 +11,7 @@ import raft.entity.ReqVoteParam;
 import raft.entity.ReqVoteResult;
 import raft.impl.NodeIMPL;
 
+import java.sql.SQLOutput;
 import java.util.logging.Logger;
 
 @SuppressWarnings("unchecked")
@@ -57,6 +58,7 @@ public class RPCServer {
     }
 
     public RPCResp handleReq(RPCReq rpcReq) {
+        System.out.println("handle req!!!");
         Object result = false;
         switch (rpcReq.getRequestType()) {
             case REQ_VOTE:
@@ -75,6 +77,7 @@ public class RPCServer {
                 result = node.handleAppEntry((AppEntryParam) rpcReq.getParam());
                 break;
             case KV:
+                System.out.println("KVok!!");
                 result = node.handleClientReq((KVReq) rpcReq.getParam());
                 break;
             default:

@@ -100,6 +100,7 @@ public class ConsensusIMPL implements Consensus {
 
             // Requirement 1
             if (param.getTerm() < node.getCurrentTerm()) {
+                System.out.println("!!!");
                 return AppEntryResult.fail(node);
             } else {
                 node.status = NodeStatus.FOLLOWER;
@@ -118,6 +119,7 @@ public class ConsensusIMPL implements Consensus {
             // entries to be applied in state machine
             // Requirement 2
             LogEntry lastEntry = node.getLogModule().getLast();
+            System.out.println("@@@@"+lastEntry);
             if (lastEntry.getTerm() == param.getPrevLogTerm()
                     && lastEntry.getIndex() != param.getPrevLogIndex()) {
                 return AppEntryResult.fail(node);

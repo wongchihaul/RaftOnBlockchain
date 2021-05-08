@@ -39,6 +39,7 @@ public class RPCClient {
             rpcResp = (RPCResp) rpcClient.invokeSync(addr, rpcReq, timeout);
         } catch (RemotingException e) {
             logger.severe("RPC server host cannot be found: " + addr);
+            e.printStackTrace();
         } catch (InterruptedException e) {
             logger.info("Interrupted while trying to send data to the RPC server: " + addr);
         }
