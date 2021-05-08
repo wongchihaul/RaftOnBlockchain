@@ -5,16 +5,17 @@ import raft.common.Peer;
 import raft.common.ReqType;
 import raft.entity.AppEntryParam;
 import raft.entity.AppEntryResult;
+import raft.entity.LogEntry;
 import raft.impl.NodeIMPL;
 import raft.rpc.RPCReq;
 import raft.rpc.RPCResp;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static raft.concurrent.RaftConcurrent.RaftThreadPool;
@@ -47,7 +48,6 @@ public class HeartBeat implements Runnable {
 
         CompletableFuture[] cfs = peerSet.stream()
                 .map(peer -> CompletableFuture.supplyAsync(() -> sendHBReq(peer), this.exs)
-                        .completeOnTimeout(null, timeout, TimeUnit.MILLISECONDS)
                         .thenAccept(entryResult -> handleHBResp(entryResult)))
                 .toArray(CompletableFuture[]::new);
 
@@ -57,6 +57,9 @@ public class HeartBeat implements Runnable {
             RaftThreadPool.submit(new LeaderElection(node));
             return;
         }
+
+//        System.out.println("LEADER: " + node.getAddr());
+//        alivePeers.forEach(p -> System.out.println("ALIVE FOLLOWER" + p.getAddr()));
 
         // remove dead peers
         if (node.getStatus() == NodeStatus.LEADER) {
@@ -71,7 +74,7 @@ public class HeartBeat implements Runnable {
         AppEntryParam appEntryParam = AppEntryParam.builder()
                 .term(node.getCurrentTerm())
                 .leaderId(node.getAddr())
-                .logEntries(null)
+                .logEntries(new ArrayList<LogEntry>())
                 .build();
 
         RPCReq rpcReq = RPCReq.builder()
@@ -81,6 +84,7 @@ public class HeartBeat implements Runnable {
                 .build();
         // Send heartbeats to all peers exclude self
         RPCResp rpcResp = node.getRpcClient().sendReq(rpcReq);
+//        System.out.println(rpcResp);
         return rpcResp;
     }
 
@@ -94,6 +98,7 @@ public class HeartBeat implements Runnable {
             return;
         }
 
+//        System.out.println(entryResult.getPeerAddr() + ":" + entryResult.isSuccess());
         if (entryResult.isSuccess()) {
             String addr = entryResult.getPeerAddr();
             String redisAddr = Peer.getIP(addr) + (Peer.getPort(addr) - 100);

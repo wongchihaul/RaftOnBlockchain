@@ -124,7 +124,7 @@ public class LeaderElection implements Runnable {
 
                 } else {
                     waitForAWhile(curTime1, timeout);
-
+                    votesCount[0].set(0);
                     System.out.println("no leader elected yet and start over");
                     node.setVotedFor(null);
                     startElection();
@@ -132,6 +132,7 @@ public class LeaderElection implements Runnable {
             } else {
                 waitForAWhile(curTime1, timeout);
                 if (PeerSet.leader == null) {
+                    votesCount[0].set(0);
                     node.setLeader(null);
                     startElection();
                 }
