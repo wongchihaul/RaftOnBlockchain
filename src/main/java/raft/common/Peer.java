@@ -15,9 +15,11 @@ public class Peer {
 
     // ip:port
     private String addr;
+    private String redisAddr;
 
-    public Peer(String addr) {
+    public Peer(String addr, String redisAddr) {
         this.addr = addr;
+        this.redisAddr = redisAddr;
     }
 
     public static String getIP(String addr) {

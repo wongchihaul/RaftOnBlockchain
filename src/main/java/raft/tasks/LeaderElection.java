@@ -61,7 +61,7 @@ public class LeaderElection implements Runnable {
         if (node.getLeader() != null) {
             return;
         } else {
-
+            long curTime1 = System.currentTimeMillis();
             Random rand = new Random();
 
             //begin election
@@ -85,8 +85,8 @@ public class LeaderElection implements Runnable {
 
             CompletableFuture[] cfs = peerSet.stream()
                     .map(peer -> CompletableFuture.supplyAsync(() -> sendVoteReq(peer), this.exs)
-                            .completeOnTimeout(null, timeout, TimeUnit.MILLISECONDS)
-                            .thenAccept(voteResult -> handleVoteResp(voteResult)))
+                            .completeOnTimeout(null, timeout, TimeUnit.MICROSECONDS)
+                            .thenAccept(this::handleVoteResp))
                     .toArray(CompletableFuture[]::new);
 
             CompletableFuture.allOf(cfs).join();
@@ -98,7 +98,7 @@ public class LeaderElection implements Runnable {
                         "follower");
                 return;
             }
-            LOGGER.info("votesCount: " + votesCount.get() + 1 + "peer numer: " + (node.getPeerSet().size() + 1) / 2);
+            System.out.println(("votesCount: " + votesCount.get() + " peer number: " + (node.getPeerSet().size() + 1) / 2));
             //check votes from a majority of the servers, add vote from itself
             if (votesCount.get() + 1 > (node.getPeerSet().size() + 1) / 2) {
                 LOGGER.info("The Node " + node.getAddr() + " becomes leader");
@@ -115,14 +115,16 @@ public class LeaderElection implements Runnable {
             } else {
                 LOGGER.info("no leader elected yet and start over");
                 node.setVotedFor(null);
-                startElection();
+                long curTime2 = System.currentTimeMillis();
+                if (curTime2 - curTime1 > timeout) {
+                    startElection();
+                }
             }
         }
     }
 
 
     RPCResp sendVoteReq(Peer peer) {
-        LOGGER.info(node.getAddr() + " is sending req");
         LogModule logModule = node.getLogModule();
         long lastTerm = 0;
         LogEntry currLast = logModule.getLast();
@@ -142,14 +144,14 @@ public class LeaderElection implements Runnable {
                 .param(reqVoteParam)
                 .addr(peer.getAddr())
                 .build();
-        LOGGER.info(rpcReq.toString());
+        System.out.println(rpcReq.toString());
         //get the RPC response from client, and add the response to future list
         RPCResp voteResp = node.getRpcClient().sendReq(rpcReq);
         return voteResp;
     }
 
     void handleVoteResp(RPCResp voteResp) {
-        LOGGER.info(node.getAddr() + " is handling resp");
+        System.out.println(voteResp);
         if (voteResp == null) {
             return;
         }

@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serializable;
+
 /**
  * Params of RPC for requesting votes
  */
@@ -14,7 +16,7 @@ import lombok.ToString;
 @Setter
 @Builder
 @ToString
-public class ReqVoteParam {
+public class ReqVoteParam implements Serializable {
 
     /**
      * candidate’s term

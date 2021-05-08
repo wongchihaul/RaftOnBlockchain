@@ -5,13 +5,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 @Getter
 @Setter
 @ToString
 @Builder
-public class AppEntryParam {
+public class AppEntryParam implements Serializable {
     /**
      * currentTerm, for leader to update itself
      */

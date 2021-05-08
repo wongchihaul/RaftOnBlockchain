@@ -16,7 +16,6 @@ import raft.rpc.RPCClient;
 import raft.rpc.RPCReq;
 import raft.rpc.RPCResp;
 import raft.rpc.RPCServer;
-import raft.tasks.HeartBeatTask;
 import raft.tasks.LeaderElection;
 import raft.tasks.Replication;
 import redis.clients.jedis.JedisPool;
@@ -121,6 +120,7 @@ public class NodeIMPL implements Node {
     private Peer peer;
 
     JedisPool jedisPool;
+    private String redisAddr;
 
     private StateMachineIMPL stateMachine;
     // END of Network and Redis configuration
@@ -129,23 +129,26 @@ public class NodeIMPL implements Node {
 
     private long lastHeartBeatTime = 0;
 
-    private RPCClient rpcClient = new RPCClient();
-    private RPCServer rpcServer = new RPCServer(9000, this); //这里先随便写了个
+    private RPCClient rpcClient;
+    private RPCServer rpcServer;
 
-    private HeartBeatTask heartBeatTask = new HeartBeatTask(this);
+//    private HeartBeatTask heartBeatTask = new HeartBeatTask(this);
 
     //这里用来取消scheduled tasks
     private ScheduledFuture<?> scheduledHeartBeatTask;
 
 
-    public NodeIMPL(String addr) {
+    public NodeIMPL(String addr, String redisAddr) {
         this.addr = addr;
-        this.peer = new Peer(addr);
-        this.jedisPool = new JedisPool(setConfig(), Peer.getIP(addr), Peer.getPort(addr));
+        this.redisAddr = redisAddr;
+        this.peer = new Peer(addr, redisAddr);
+        this.jedisPool = new JedisPool(setConfig(), Peer.getIP(redisAddr), Peer.getPort(redisAddr));
         this.logModule = new LogModuleIMPL(this);
         this.peerSet = getOthers(this.peer);
         this.stateMachine = new StateMachineIMPL(this);
         this.consensus = new ConsensusIMPL(this);
+        this.rpcClient = new RPCClient();
+        this.rpcServer = new RPCServer(Peer.getPort(addr), this);
     }
 
     @Override
@@ -162,6 +165,12 @@ public class NodeIMPL implements Node {
             consensus = new ConsensusIMPL(this);
 
             LeaderElection leaderElection = new LeaderElection(this);
+
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             RaftThreadPool.submit(leaderElection);
 

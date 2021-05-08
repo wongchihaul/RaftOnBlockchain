@@ -1,28 +1,34 @@
 package raft.rpc;
 
 import client.KVReq;
+import com.alipay.remoting.AsyncContext;
 import com.alipay.remoting.BizContext;
 import com.alipay.remoting.rpc.RpcServer;
-import com.alipay.remoting.rpc.protocol.SyncUserProcessor;
+import com.alipay.remoting.rpc.protocol.AbstractUserProcessor;
 import raft.entity.AppEntryParam;
 import raft.entity.ReqVoteParam;
 import raft.impl.NodeIMPL;
 
 import java.util.logging.Logger;
 
-
+@SuppressWarnings("unchecked")
 public class RPCServer {
     NodeIMPL node;
     RpcServer rpcServer;
     public static final Logger logger = Logger.getLogger(RPCServer.class.getName());
 
+    CONNECTEventProcessor serverConnectProcessor = new CONNECTEventProcessor();
+    DISCONNECTEventProcessor serverDisConnectProcessor = new DISCONNECTEventProcessor();
+
     public RPCServer(int port, NodeIMPL node) {
         this.node = node;
-        rpcServer = new RpcServer(port);
-        rpcServer.registerUserProcessor(new SyncUserProcessor<RPCReq>() {
-//            @Override
-//            public void handleRequest(BizContext bizContext, AsyncContext asyncContext, RPCReq rpcReq) {
-//            }
+        rpcServer = new RpcServer(port, false, false);
+//        rpcServer.addConnectionEventProcessor(ConnectionEventType.CONNECT, serverConnectProcessor);
+//        rpcServer.addConnectionEventProcessor(ConnectionEventType.CLOSE, serverDisConnectProcessor);
+        rpcServer.registerUserProcessor(new AbstractUserProcessor<RPCReq>() {
+            @Override
+            public void handleRequest(BizContext bizContext, AsyncContext asyncContext, RPCReq rpcReq) {
+            }
 
             @Override
             public RPCResp handleRequest(BizContext bizContext, RPCReq rpcReq) {
@@ -37,7 +43,11 @@ public class RPCServer {
     }
 
     public void start() {
-        rpcServer.start();
+        if (rpcServer.start()) {
+            System.out.println("server start ok!");
+        } else {
+            System.out.println("server start failed!");
+        }
     }
 
     public void stop() {

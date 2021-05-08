@@ -101,25 +101,27 @@ public class RedisPool {
         ArrayList<NodeIMPL> nodeList = new ArrayList<>();
         NodeIMPL nodeIMPL = null;
         for (int i = 6380; i <= 6384; i++) {
-            String addr = "localhost:" + i;
-            Peer peer = new Peer(addr);
+            String addr = "localhost:" + (i + 100);
+            String redisAddr = "localhost:" + i;
+            Peer peer = new Peer(addr, redisAddr);
             PeerSet.peerSet.add(peer);
         }
         for (int i = 6380; i <= 6384; i++) {
-            String addr = "localhost:" + i;
-            nodeIMPL = new NodeIMPL(addr);
+            String addr = "localhost:" + (i + 100);
+            String redisAddr = "localhost:" + i;
+            nodeIMPL = new NodeIMPL(addr, redisAddr);
             nodeList.add(nodeIMPL);
         }
 
         nodeList.forEach(NodeIMPL::init);
 
         try {
-            Thread.sleep(1000 * 4);
+            Thread.sleep(1000 * 10);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        nodeList.forEach(node -> System.out.println(node.getLeader()));
+        nodeList.forEach(System.out::println);
 
         try {
             Thread.sleep(1000 * 4);
@@ -127,9 +129,9 @@ public class RedisPool {
             e.printStackTrace();
         }
 
-        nodeIMPL = nodeList.get(2);
+        nodeIMPL = nodeList.get(1);
         StateMachineIMPL stateMachineIMPL = new StateMachineIMPL(nodeIMPL);
-        System.out.println(stateMachineIMPL.getVal("1_034"));
+        System.out.println(stateMachineIMPL.getVal("1_10"));
 
     }
 

@@ -62,10 +62,11 @@ public class ConsensusIMPL implements Consensus {
             }
 
             // update status
+            String id = param.getCandidateId();
             node.status = NodeStatus.FOLLOWER;
             node.setCurrentTerm(param.getTerm());
-            node.setVotedFor(param.getCandidateId());
-            node.setLeader(new Peer(param.getCandidateId()));
+            node.setVotedFor(id);
+            node.setLeader(new Peer(id, Peer.getIP(id) + (Peer.getPort(id) - 100)));
 
             return ReqVoteResult.success(node);
         } finally {
@@ -102,9 +103,9 @@ public class ConsensusIMPL implements Consensus {
             } else {
                 node.status = NodeStatus.FOLLOWER;
             }
-
+            String id = param.getLeaderId();
             node.setCurrentTerm(param.getTerm());
-            node.setLeader(new Peer(param.getLeaderId()));
+            node.setLeader(new Peer(id, Peer.getIP(id) + (Peer.getPort(id) - 100)));
 
             // heartbeat
             if (param.getLogEntries().size() == 0) {

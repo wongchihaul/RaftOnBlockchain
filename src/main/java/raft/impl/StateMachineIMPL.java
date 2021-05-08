@@ -32,7 +32,7 @@ public class StateMachineIMPL implements StateMachine {
     public StateMachineIMPL(NodeIMPL node) {
         this.node = node;
         jedisPool = node.getJedisPool();
-        rdbPath = "redisConfigs/redis-" + Peer.getPort(node.getAddr()) + "/dump.rdb";
+        rdbPath = "redisConfigs/redis-" + Peer.getPort(node.getRedisAddr()) + "/dump.rdb";
     }
 
     // TODO: I don't think synchronized is needed since Redis is single-threaded.

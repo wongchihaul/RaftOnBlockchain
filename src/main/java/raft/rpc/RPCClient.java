@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 public class RPCClient {
     public static final Logger logger = Logger.getLogger(RPCClient.class.getName());
 
+    static CONNECTEventProcessor clientConnectProcessor = new CONNECTEventProcessor();
+    static DISCONNECTEventProcessor clientDisConnectProcessor = new DISCONNECTEventProcessor();
     /**
      * Initiate a RPC Client
      */
@@ -19,6 +21,8 @@ public class RPCClient {
     private final int timeout = 120000;
 
     static {
+//        rpcClient.addConnectionEventProcessor(ConnectionEventType.CONNECT, clientConnectProcessor);
+//        rpcClient.addConnectionEventProcessor(ConnectionEventType.CLOSE, clientDisConnectProcessor);
         rpcClient.init();
     }
 
@@ -31,6 +35,7 @@ public class RPCClient {
         RPCResp rpcResp = null;
         String addr = rpcReq.getAddr();
         try {
+            System.out.println(addr + " " + rpcClient.checkConnection(addr));
             rpcResp = (RPCResp) rpcClient.invokeSync(addr, rpcReq, timeout);
         } catch (RemotingException e) {
             logger.severe("RPC server host cannot be found: " + addr);

@@ -95,7 +95,9 @@ public class HeartBeat implements Runnable {
         }
 
         if (entryResult.isSuccess()) {
-            alivePeers.add(new Peer(entryResult.getPeerAddr()));
+            String addr = entryResult.getPeerAddr();
+            String redisAddr = Peer.getIP(addr) + (Peer.getPort(addr) - 100);
+            alivePeers.add(new Peer(addr, redisAddr));
         } else {
             // peer's term > self term and start a new election
             node.setStatus(NodeStatus.FOLLOWER);
