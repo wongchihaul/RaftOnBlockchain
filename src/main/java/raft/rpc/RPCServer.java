@@ -5,8 +5,10 @@ import com.alipay.remoting.AsyncContext;
 import com.alipay.remoting.BizContext;
 import com.alipay.remoting.rpc.RpcServer;
 import com.alipay.remoting.rpc.protocol.AbstractUserProcessor;
+import jdk.jfr.consumer.RecordedStackTrace;
 import raft.entity.AppEntryParam;
 import raft.entity.ReqVoteParam;
+import raft.entity.ReqVoteResult;
 import raft.impl.NodeIMPL;
 
 import java.util.logging.Logger;
@@ -58,7 +60,16 @@ public class RPCServer {
         Object result = false;
         switch (rpcReq.getRequestType()) {
             case REQ_VOTE:
-                result = node.handleReqVote((ReqVoteParam) rpcReq.getParam());
+                ReqVoteParam voteParam = (ReqVoteParam) rpcReq.getParam();
+                result = node.handleReqVote(voteParam);
+                boolean voteResult = ((ReqVoteResult) result).isVoteGranted();
+                if (voteResult) {
+                    logger.info(String.format("node{%s, status=%s} vote node{%s} for %s", node.getAddr(), node.getStatus(),
+                            voteParam.getCandidateId(), true));
+                } else {
+                    logger.warning(String.format("node{%s, status=%s} vote node{%s} for %s", node.getAddr(), node.getStatus(),
+                            voteParam.getCandidateId(), false));
+                }
                 break;
             case APP_ENTRY:
                 result = node.handleAppEntry((AppEntryParam) rpcReq.getParam());

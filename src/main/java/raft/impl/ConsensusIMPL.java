@@ -59,16 +59,17 @@ public class ConsensusIMPL implements Consensus {
                         return ReqVoteResult.fail(node);
                     }
                 }
+                // update status
+                String id = param.getCandidateId();
+                node.status = NodeStatus.FOLLOWER;
+                node.setCurrentTerm(param.getTerm());
+                node.setVotedFor(id);
+                node.setLeader(new Peer(id, Peer.getIP(id) + (Peer.getPort(id) - 100)));
+
+                return ReqVoteResult.success(node);
+            } else {
+                return ReqVoteResult.fail(node);
             }
-
-            // update status
-            String id = param.getCandidateId();
-            node.status = NodeStatus.FOLLOWER;
-            node.setCurrentTerm(param.getTerm());
-            node.setVotedFor(id);
-            node.setLeader(new Peer(id, Peer.getIP(id) + (Peer.getPort(id) - 100)));
-
-            return ReqVoteResult.success(node);
         } finally {
             reqVoteLock.unlock();
         }
@@ -109,7 +110,7 @@ public class ConsensusIMPL implements Consensus {
 
             // heartbeat
             if (param.getLogEntries().size() == 0) {
-                logger.info(String.format("node %s successfully appends heartbeat, its term: %s, self term: %s",
+                logger.info(String.format("node{%s} successfully appends heartbeat, its term: %s, self term: %s",
                         param.getLeaderId(), param.getTerm(), node.getCurrentTerm()));
                 return AppEntryResult.success(node);
             }
