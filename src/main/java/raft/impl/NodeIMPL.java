@@ -11,6 +11,7 @@ import raft.Node;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.common.ReqType;
+import raft.concurrent.RaftConcurrent;
 import raft.entity.*;
 import raft.rpc.RPCClient;
 import raft.rpc.RPCReq;
@@ -22,8 +23,10 @@ import raft.tasks.Replication;
 import redis.clients.jedis.JedisPool;
 
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static raft.common.PeerSet.getOthers;
@@ -40,7 +43,7 @@ public class NodeIMPL implements Node {
 
     public static final int HEARTBEAT_TICK = 125;
 
-    public static final int ELECTION_TIMEOUT = 300;
+    public static final int ELECTION_TIMEOUT = 500;
 
     public static final int REPLICATION_TIMEOUT = 4000;
 
@@ -57,15 +60,9 @@ public class NodeIMPL implements Node {
     /**
      * candidateId that received vote in current term (or null if none)
      */
-    String votedFor = null;
+    volatile String votedFor = null;
 
-    /**
-     * log entries; each entry contains command
-     * for state machine, and term when entry
-     * was received by leader (first index is 1)
-     * And we will have CRUD of log entries in Redis
-     */
-    LogModule logModule;
+    private String addr;
 
     /**
      * Options: FOLLOWER(0), CANDIDATE(1), LEADER(2)
@@ -117,7 +114,7 @@ public class NodeIMPL implements Node {
 
 
     // START of Network and Redis configuration
-    private String addr;
+
     private Peer peer;
 
     JedisPool jedisPool;
@@ -137,6 +134,14 @@ public class NodeIMPL implements Node {
 
     //这里用来取消scheduled tasks
     private ScheduledFuture<?> scheduledHeartBeatTask;
+
+    /**
+     * log entries; each entry contains command
+     * for state machine, and term when entry
+     * was received by leader (first index is 1)
+     * And we will have CRUD of log entries in Redis
+     */
+    LogModule logModule;
 
 
     public NodeIMPL(String addr, String redisAddr) {
@@ -168,7 +173,9 @@ public class NodeIMPL implements Node {
 
             LeaderElection leaderElection = new LeaderElection(this);
 //            LeaderElectionTask leaderElectionTask = new LeaderElectionTask(this);
-            RaftThreadPool.submit(leaderElection);
+//            RaftThreadPool.submit(leaderElection);
+            Random rand = new Random();
+            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 2000 + rand.nextInt(5) * 1000, 500, TimeUnit.MILLISECONDS);
 //            scheduler.scheduleAtFixedRate(leaderElectionTask, 6000, 500, TimeUnit.MICROSECONDS);
             LogEntry logEntry = logModule.getLast();
             if (logEntry != null) {
@@ -189,13 +196,13 @@ public class NodeIMPL implements Node {
 
     @Override
     public ReqVoteResult handleReqVote(ReqVoteParam param) {
-        LOGGER.warning(String.format("request vote param info: %s", param));
+        LOGGER.warning(String.format("Node{%s} handle request vote param info: %s", this.getAddr(), param));
         return consensus.requestVote(param);
     }
 
     @Override
     public AppEntryResult handleAppEntry(AppEntryParam param) {
-        LOGGER.warning(String.format("Append Entry param info: %s", param));
+        LOGGER.info(String.format("Append Entry param info: %s", param));
         return consensus.appendEntry(param);
     }
 

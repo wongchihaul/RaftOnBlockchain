@@ -78,9 +78,11 @@ public class LeaderElection implements Runnable {
 
             //increment term and vote for itself
             node.setCurrentTerm(node.getCurrentTerm() + 1);
+
+            // vote for itself
             node.setVotedFor(node.getAddr());
 
-            LOGGER.info("node " + node.getPeer() + "becomes a candidate and begins the election," +
+            LOGGER.info("node " + node.getPeer() + " becomes a candidate and begins the election," +
                     " " +
                     "current term: " + node.getCurrentTerm() + " LastEntry: " + node.getLogModule().getLast()
                     + "peerset: " + node.getPeerSet());
@@ -102,8 +104,7 @@ public class LeaderElection implements Runnable {
             // to follower
             boolean flag = true;
             if (node.getStatus() == NodeStatus.FOLLOWER) {
-                LOGGER.info("candidate receive AppendEntries RPC from valid leader, return to " +
-                        "follower");
+                LOGGER.info(String.format("Node{%s} candidate receive AppendEntries RPC from valid leader, return to follower", node.getAddr()));
                 flag = false;
             }
             if (flag) {
