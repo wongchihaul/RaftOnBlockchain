@@ -3,10 +3,11 @@ package raft.rpc;
 import com.alipay.remoting.exception.RemotingException;
 import com.alipay.remoting.rpc.RpcClient;
 
+import java.io.Serializable;
 import java.util.logging.Logger;
 
 
-public class RPCClient {
+public class RPCClient implements Serializable {
     public static final Logger logger = Logger.getLogger(RPCClient.class.getName());
 
     static CONNECTEventProcessor clientConnectProcessor = new CONNECTEventProcessor();
@@ -37,6 +38,7 @@ public class RPCClient {
         try {
 //            System.out.println(addr + " " + rpcClient.checkConnection(addr));
             rpcResp = (RPCResp) rpcClient.invokeSync(addr, rpcReq, timeout);
+            System.out.println("@@@@@@@@");
         } catch (RemotingException e) {
             logger.severe("RPC server host cannot be found: " + addr);
             e.printStackTrace();

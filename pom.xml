@@ -47,11 +47,13 @@
 
 
         <!-- RPC transport -->
-        <!--        <dependency>-->
-        <!--            <groupId>com.alipay.sofa</groupId>-->
-        <!--            <artifactId>bolt</artifactId>-->
-        <!--            <version>1.5.7</version>-->
-        <!--        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/com.alipay.sofa/bolt -->
+        <dependency>
+            <groupId>com.alipay.sofa</groupId>
+            <artifactId>bolt</artifactId>
+            <version>1.5.7</version>
+        </dependency>
+
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>sofa-rpc-all</artifactId>

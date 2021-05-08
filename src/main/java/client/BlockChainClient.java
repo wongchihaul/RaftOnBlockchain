@@ -15,7 +15,7 @@ import raft.rpc.RPCResp;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class BlockChainClient {
+public class BlockChainClient{
     private static final Logger LOGGER = LoggerFactory.getLogger(BlockChainClient.class);
 
 

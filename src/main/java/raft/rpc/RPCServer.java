@@ -79,6 +79,7 @@ public class RPCServer {
             case KV:
                 System.out.println("KVok!!");
                 result = node.handleClientReq((KVReq) rpcReq.getParam());
+                System.out.println("shabishabi");
                 break;
             default:
                 logger.severe("Unsupported request type");
