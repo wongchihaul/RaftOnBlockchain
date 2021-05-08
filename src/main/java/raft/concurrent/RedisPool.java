@@ -114,14 +114,17 @@ public class RedisPool {
         }
 
         nodeList.forEach(NodeIMPL::init);
+        for (int i = 0; i < 5; i++) {
 
-        try {
-            Thread.sleep(1000 * 10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            try {
+                Thread.sleep(1000 * 10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            nodeList.forEach(System.out::println);
+            System.out.println(PeerSet.leader);
         }
-
-        nodeList.forEach(System.out::println);
 
         try {
             Thread.sleep(1000 * 4);

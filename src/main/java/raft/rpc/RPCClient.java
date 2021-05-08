@@ -35,7 +35,7 @@ public class RPCClient {
         RPCResp rpcResp = null;
         String addr = rpcReq.getAddr();
         try {
-            System.out.println(addr + " " + rpcClient.checkConnection(addr));
+//            System.out.println(addr + " " + rpcClient.checkConnection(addr));
             rpcResp = (RPCResp) rpcClient.invokeSync(addr, rpcReq, timeout);
         } catch (RemotingException e) {
             logger.severe("RPC server host cannot be found: " + addr);

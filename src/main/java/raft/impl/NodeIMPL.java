@@ -16,6 +16,7 @@ import raft.rpc.RPCClient;
 import raft.rpc.RPCReq;
 import raft.rpc.RPCResp;
 import raft.rpc.RPCServer;
+import raft.tasks.HeartBeatTask;
 import raft.tasks.LeaderElection;
 import raft.tasks.Replication;
 import redis.clients.jedis.JedisPool;
@@ -39,7 +40,7 @@ public class NodeIMPL implements Node {
 
     public static final int HEARTBEAT_TICK = 125;
 
-    public static final int ELECTION_TIMEOUT = 150;
+    public static final int ELECTION_TIMEOUT = 300;
 
     public static final int REPLICATION_TIMEOUT = 4000;
 
@@ -132,7 +133,7 @@ public class NodeIMPL implements Node {
     private RPCClient rpcClient;
     private RPCServer rpcServer;
 
-//    private HeartBeatTask heartBeatTask = new HeartBeatTask(this);
+    private HeartBeatTask heartBeatTask = new HeartBeatTask(this);
 
     //这里用来取消scheduled tasks
     private ScheduledFuture<?> scheduledHeartBeatTask;
@@ -164,16 +165,11 @@ public class NodeIMPL implements Node {
 
             consensus = new ConsensusIMPL(this);
 
+
             LeaderElection leaderElection = new LeaderElection(this);
-
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
+//            LeaderElectionTask leaderElectionTask = new LeaderElectionTask(this);
             RaftThreadPool.submit(leaderElection);
-
+//            scheduler.scheduleAtFixedRate(leaderElectionTask, 6000, 500, TimeUnit.MICROSECONDS);
             LogEntry logEntry = logModule.getLast();
             if (logEntry != null) {
                 currentTerm = logEntry.getTerm();

@@ -22,7 +22,7 @@ public class RPCServer {
 
     public RPCServer(int port, NodeIMPL node) {
         this.node = node;
-        rpcServer = new RpcServer(port, false, false);
+        rpcServer = new RpcServer(port);
 //        rpcServer.addConnectionEventProcessor(ConnectionEventType.CONNECT, serverConnectProcessor);
 //        rpcServer.addConnectionEventProcessor(ConnectionEventType.CLOSE, serverDisConnectProcessor);
         rpcServer.registerUserProcessor(new AbstractUserProcessor<RPCReq>() {
@@ -55,21 +55,22 @@ public class RPCServer {
     }
 
     public RPCResp handleReq(RPCReq rpcReq) {
-        boolean result = false;
+        Object result = false;
         switch (rpcReq.getRequestType()) {
             case REQ_VOTE:
-                result = node.handleReqVote((ReqVoteParam) rpcReq.getParam()).isVoteGranted();
+                result = node.handleReqVote((ReqVoteParam) rpcReq.getParam());
                 break;
             case APP_ENTRY:
-                result = node.handleAppEntry((AppEntryParam) rpcReq.getParam()).isSuccess();
+                result = node.handleAppEntry((AppEntryParam) rpcReq.getParam());
                 break;
             case KV:
-                result = node.handleClientReq((KVReq) rpcReq.getParam()).isSuccess();
+                result = node.handleClientReq((KVReq) rpcReq.getParam());
                 break;
             default:
                 logger.severe("Unsupported request type");
         }
 
+        System.out.println(node.getAddr() + " is sending back RPC response");
         return RPCResp.builder()
                 .req(rpcReq)
                 .result(result)
