@@ -12,3 +12,4 @@ target
 #Redis Log
 *.log
 
+redisConfigs
