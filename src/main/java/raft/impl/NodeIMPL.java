@@ -22,6 +22,7 @@ import raft.tasks.LeaderElection;
 import raft.tasks.Replication;
 import redis.clients.jedis.JedisPool;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -91,12 +92,12 @@ public class NodeIMPL implements Node {
     /**
      * 对于每一个服务器，需要发送给他的下一个日志条目的索引值（初始化为领导人最后索引值加一）
      */
-    Map<Peer, Long> nextIndexes;
+    Map<Peer, Long> nextIndexes = new HashMap<>() ;
 
     /**
      * 对于每一个服务器，已经复制给他的日志的最高索引值
      */
-    Map<Peer, Long> latestIndexes;
+    Map<Peer, Long> latestIndexes = new HashMap<>();
 
     /**
      * Set of peers, excluding self

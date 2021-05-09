@@ -2,6 +2,8 @@ package client;
 
 import chainUtils.Block;
 import chainUtils.NoobChain;
+import chainUtils.Transaction;
+import chainUtils.Wallet;
 import com.alipay.remoting.exception.RemotingException;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
@@ -12,6 +14,7 @@ import raft.rpc.RPCClient;
 import raft.rpc.RPCReq;
 import raft.rpc.RPCResp;
 
+import java.security.Security;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -29,7 +32,19 @@ public class BlockChainClient{
 
 
         NoobChain nc = new NoobChain();
-        KVReq obj = KVReq.builder().key("b").value("3").type(0).noobChain(new NoobChain()).build();
+        Block b1 = new Block(nc.getBlockchain().get(nc.getBlockchain().size()-1).hash);
+
+
+        //Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        //Wallet walletA = new Wallet();
+
+
+        b1.addTransaction("kkk:6");
+        nc.addBlock(b1);
+        System.out.println(nc);
+
+        KVReq obj = KVReq.builder().key("a").value("3").type(0).noobChain(nc).build();
+        System.out.println("BlockChain successfully created " + nc + " sending to server...");
 
 
 

@@ -49,10 +49,11 @@ public class Replication implements Runnable {
 
 
         int timeout = NodeIMPL.REPLICATION_TIMEOUT;
+        System.out.println("***");
 
         CompletableFuture[] cfs = peerSet.stream()
                 .map(peer -> CompletableFuture.supplyAsync(() -> sendReplication(peer, logEntryToSent), this.exs)
-                        .completeOnTimeout(false, timeout, TimeUnit.MILLISECONDS)
+                        //.completeOnTimeout(false, timeout, TimeUnit.MILLISECONDS)
                         .thenAccept(replicaResult -> {
                             if (replicaResult)
                                 replicaCount.incrementAndGet();
@@ -72,6 +73,7 @@ public class Replication implements Runnable {
         Long[] indexes = node.getLatestIndexes().values().toArray(new Long[0]);
         Arrays.sort(indexes);
         Long median = indexes.length >= 2 ? indexes[indexes.length / 2 - 1] : 0;
+        System.out.println("cuocuo"+ node.getLogModule().read(median));
         if (node.getLogModule().read(median).getTerm() == node.getCurrentTerm()
                 && median > node.getCommitIndex()) {
             node.setCommitIndex(median);
@@ -95,9 +97,13 @@ public class Replication implements Runnable {
     // After write to local logs
     Boolean sendReplication(Peer peer, LogEntry logEntry) {
         // The first time LEADER sends replication RPC to FOLLOWERs
+        LOGGER.info("LEADER sending replication..." + node.getNextIndexes());
         long nextIndex = node.getNextIndexes().get(peer);
+        LOGGER.info("$$$");
         ArrayList<LogEntry> logEntriesToSend = new ArrayList<>();
+        LOGGER.info("nextIndex" + nextIndex+ " EntriesToSend: " + logEntriesToSend);
         if (logEntry.getIndex() >= nextIndex) {
+            System.out.println("logEntry Index larger");
             for (long i = nextIndex; i <= logEntry.getIndex(); i++) {
                 LogEntry recordEntry = node.getLogModule().read(i);
                 if (recordEntry != null) {
@@ -105,10 +111,14 @@ public class Replication implements Runnable {
                 }
             }
         } else {
+            LOGGER.info("LogEntriesToSend " + logEntryToSent);
             logEntriesToSend.add(logEntry);
+            LOGGER.info("LogEntriesToSend new  " + logEntriesToSend);
         }
 
         LogEntry prevLog = getPrevLog(logEntry);
+
+        System.out.println("###" + prevLog);
         AppEntryParam appEntryParam = AppEntryParam.builder()
                 .term(node.getCurrentTerm())
                 .leaderId(node.getAddr())
@@ -123,13 +133,17 @@ public class Replication implements Runnable {
                 .addr(peer.getAddr())
                 .build();
         RPCResp replicaResp = node.getRpcClient().sendReq(rpcReq);
+        System.out.println("replicate appentry" + appEntryParam);
 
         // handle response here
         if (replicaResp == null) {
+            System.out.println("&&&");
             return false;
         }
+        System.out.println("RPC response" + replicaResp);
         AppEntryResult replicaResult = (AppEntryResult) replicaResp.getResult();
 
+        System.out.println("replicaResult" + replicaResult);
         if (replicaResult != null) {
             if (replicaResult.isSuccess()) {
                 LOGGER.info(String.format("Append log entries: %s to follower: %s success", logEntry, replicaResult.getPeerAddr()));
@@ -156,6 +170,7 @@ public class Replication implements Runnable {
 
 
     private LogEntry getPrevLog(LogEntry logEntry) {
+        System.out.println("###getprevlog");
         LogEntry entry = node.getLogModule().read(logEntry.getIndex() - 1);
 
         if (entry == null) {

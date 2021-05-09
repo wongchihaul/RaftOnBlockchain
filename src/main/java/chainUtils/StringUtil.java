@@ -2,12 +2,13 @@ package chainUtils;
 
 import com.google.gson.GsonBuilder;
 
+import java.io.Serializable;
 import java.security.*;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
-public class StringUtil {
+public class StringUtil  {
     //Applies Sha256 to a string and returns the result.
     public static String applySha256(String input) {
 
@@ -67,12 +68,12 @@ public class StringUtil {
         return Base64.getEncoder().encodeToString(key.getEncoded());
     }
 
-    public static String getMerkleRoot(ArrayList<Transaction> transactions) {
+    public static String getMerkleRoot(ArrayList<String> transactions) {
         int count = transactions.size();
 
         List<String> previousTreeLayer = new ArrayList<>();
-        for (Transaction transaction : transactions) {
-            previousTreeLayer.add(transaction.transactionId);
+        for (String transaction : transactions) {
+            previousTreeLayer.add(transaction);
         }
         List<String> treeLayer = previousTreeLayer;
 
@@ -88,4 +89,6 @@ public class StringUtil {
         String merkleRoot = (treeLayer.size() == 1) ? treeLayer.get(0) : "";
         return merkleRoot;
     }
+
+
 }

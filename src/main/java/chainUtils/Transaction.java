@@ -1,5 +1,6 @@
 package chainUtils;
 
+import java.io.Serializable;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Date;
@@ -9,7 +10,7 @@ import java.util.Date;
 // but still create this Transaction class in case //
 // of we wanna have some fancy implementation      //
 /////////////////////////////////////////////////////
-public class Transaction {
+public class Transaction implements Serializable{
     public String transactionId; //Contains a hash of transaction*
     public PublicKey sender; //Senders address/public key.
     public byte[] signature;
@@ -19,6 +20,11 @@ public class Transaction {
     // Constructor:
     public Transaction(PublicKey from, String input) {
         this.sender = from;
+        this.input = input;
+        this.timeStamp = new Date().getTime();
+        this.transactionId = calulateHash();
+    }
+    public Transaction(String input) {
         this.input = input;
         this.timeStamp = new Date().getTime();
         this.transactionId = calulateHash();

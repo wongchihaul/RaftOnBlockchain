@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -16,7 +17,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @Builder
-public class Transaction {
+public class Transaction implements Serializable {
 
     public String key;
     public NoobChain noobChain;

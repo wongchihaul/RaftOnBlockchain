@@ -5,11 +5,15 @@ import java.util.ArrayList;
 
 public class NoobChain implements Serializable {
 
-    public static ArrayList<Block> blockchain = new ArrayList<>();
+    private ArrayList<Block> blockchain = new ArrayList<>();
 
     public NoobChain() {
         Block genesis = new Block("0");
         addBlock(genesis);
+    }
+
+    public ArrayList<Block> getBlockchain() {
+        return blockchain;
     }
 
     public synchronized void addBlock(Block block) {

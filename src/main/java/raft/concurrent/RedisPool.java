@@ -134,7 +134,7 @@ public class RedisPool {
 
         nodeIMPL = nodeList.get(1);
         StateMachineIMPL stateMachineIMPL = new StateMachineIMPL(nodeIMPL);
-        System.out.println(stateMachineIMPL.getVal("1_10"));
+        System.out.println("======"+stateMachineIMPL.getVal("233"));
 
     }
 

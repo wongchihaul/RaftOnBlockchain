@@ -95,6 +95,7 @@ public class ConsensusIMPL implements Consensus {
     public AppEntryResult appendEntry(AppEntryParam param) {
         try {
             if (!appEntryLock.tryLock()) {
+                System.out.println("??");
                 return AppEntryResult.fail(node);
             }
 
@@ -118,16 +119,21 @@ public class ConsensusIMPL implements Consensus {
 
             // entries to be applied in state machine
             // Requirement 2
+
             LogEntry lastEntry = node.getLogModule().getLast();
-            System.out.println("@@@@"+lastEntry);
+
+            System.out.println("@@@@!!!!"+lastEntry + node.getLogModule()+node.getAddr());
+            if(lastEntry!=null){
             if (lastEntry.getTerm() == param.getPrevLogTerm()
                     && lastEntry.getIndex() != param.getPrevLogIndex()) {
                 return AppEntryResult.fail(node);
-            }
+            }}
 
             //Requirement 3 & 4
+            System.out.println("####hhh");
             long currIndex = param.getPrevLogIndex() + 1;
             LogEntry existingEntry = node.getLogModule().read(currIndex);
+            System.out.println("existing entry");
             if (existingEntry != null) {
                 //conflict
                 if (existingEntry.getTerm() != param.getLogEntries().get(0).getTerm()) {
@@ -146,6 +152,7 @@ public class ConsensusIMPL implements Consensus {
 
             //Requirement 5
             if (node.getCommitIndex() < param.getLeaderCommit()) {
+                System.out.println("goodd");
                 long commitIndex = Math.min(node.getLogModule().getLastIndex(), param.getLeaderCommit());
                 node.setCommitIndex(commitIndex);
                 node.setLastApplied(commitIndex);

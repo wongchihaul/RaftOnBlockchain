@@ -5,7 +5,7 @@ import raft.entity.LogEntry;
 public interface LogModule {
     void write(LogEntry logEntry);
 
-    LogEntry read(Long index);
+    LogEntry read(long index);
 
     void removeLogs(Long startIndex);
 

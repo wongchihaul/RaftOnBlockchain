@@ -36,11 +36,11 @@ public class LogModuleIMPL implements LogModule {
     }
 
     @Override
-    public LogEntry read(Long index) {
+    public LogEntry read(long index) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            String entry = jedis.lindex(uuid, index);
+            String entry = jedis.lindex(uuid, index-1);
             if (entry == null) {
                 return null;
             }
