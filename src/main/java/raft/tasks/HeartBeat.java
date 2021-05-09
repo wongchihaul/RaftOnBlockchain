@@ -48,7 +48,7 @@ public class HeartBeat implements Runnable {
 
         CompletableFuture[] cfs = peerSet.stream()
                 .map(peer -> CompletableFuture.supplyAsync(() -> sendHBReq(peer), this.exs)
-                        .thenAccept(entryResult -> handleHBResp(entryResult)))
+                        .thenAccept(this::handleHBResp))
                 .toArray(CompletableFuture[]::new);
 
         CompletableFuture.allOf(cfs).join();

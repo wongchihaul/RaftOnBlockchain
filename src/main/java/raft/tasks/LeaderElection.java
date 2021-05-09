@@ -115,27 +115,33 @@ public class LeaderElection implements Runnable {
                     LOGGER.info("The Node " + node.getAddr() + " becomes leader");
                     node.setStatus(NodeStatus.LEADER);
 
+                    //set itself to leader
+                    node.setLeader(node.getPeer());
+                    PeerSet.leader = node.getPeer();
+
                     // Start heartbeat task
                     HeartBeat heartBeat = new HeartBeat(node);
                     ScheduledFuture<?> scheduledHB = scheduler.scheduleAtFixedRate(heartBeat, 0, NodeIMPL.HEARTBEAT_TICK, TimeUnit.MILLISECONDS);
                     node.setScheduledHeartBeatTask(scheduledHB);
 
-                    //set itself to leader
-                    node.setLeader(node.getPeer());
-                    PeerSet.leader = node.getPeer();
+                    // set indexes
+                    long currIndex = node.getCommitIndex();
+                    for (Peer peer : node.getPeerSet()) {
+                        node.getNextIndexes().put(peer, currIndex + 1);
+                        node.getLatestIndexes().put(peer, 0L);
+                    }
+
 
                 } else {
                     waitForAWhile(curTime1, timeout);
                     votesCount[0].set(0);
                     System.out.println("no leader elected yet and start over");
-                    node.setVotedFor(null);
                     startElection();
                 }
             } else {
                 waitForAWhile(curTime1, timeout);
                 if (PeerSet.leader == null) {
                     votesCount[0].set(0);
-                    node.setLeader(null);
                     startElection();
                 }
             }
