@@ -108,7 +108,8 @@ public class LeaderElection implements Runnable {
                 flag = false;
             }
             if (flag) {
-                System.out.println(("votesCount: " + votesCount[0].get() + " peer number: " + (node.getPeerSet().size() + 1) / 2));
+                System.out.println(("votesCount from peers: " + votesCount[0].get() + " peer " +
+                        "number: " + node.getPeerSet().size()));
                 //check votes from a majority of the servers, add vote from itself
                 if (votesCount[0].get() + 1 > (node.getPeerSet().size() + 1) / 2) {
                     LOGGER.info("The Node " + node.getAddr() + " becomes leader");

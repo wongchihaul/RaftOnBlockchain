@@ -23,8 +23,9 @@ public class KVReq implements Serializable {
     int type;
     NoobChain noobChain;
     String key;
-
     String value;
+
+
 
 //    private KVReq(Builder builder) {
 //        setType(builder.type);

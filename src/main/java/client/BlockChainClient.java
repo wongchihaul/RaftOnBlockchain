@@ -28,8 +28,8 @@ public class BlockChainClient{
     public static void main(String[] args) throws RemotingException, InterruptedException {
 
 
-
-        KVReq obj = KVReq.builder().key("a").value("2").type(0).noobChain(new NoobChain()).build();
+        NoobChain nc = new NoobChain();
+        KVReq obj = KVReq.builder().key("b").value("3").type(0).noobChain(new NoobChain()).build();
 
 
 
