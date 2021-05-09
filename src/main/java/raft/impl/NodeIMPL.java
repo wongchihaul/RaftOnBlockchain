@@ -44,7 +44,7 @@ public class NodeIMPL implements Node {
 
     public static final int HEARTBEAT_TICK = 125;
 
-    public static final int ELECTION_TIMEOUT = 500;
+    public static final int ELECTION_TIMEOUT = 300;
 
     public static final int REPLICATION_TIMEOUT = 4000;
 
@@ -176,7 +176,8 @@ public class NodeIMPL implements Node {
 //            LeaderElectionTask leaderElectionTask = new LeaderElectionTask(this);
 //            RaftThreadPool.submit(leaderElection);
             Random rand = new Random();
-            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 2000 + rand.nextInt(5) * 1000, 500, TimeUnit.MILLISECONDS);
+//            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 2000 + rand.nextInt(5) * 1000, 500, TimeUnit.MILLISECONDS);
+            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 3000, 500, TimeUnit.MILLISECONDS);
 //            scheduler.scheduleAtFixedRate(leaderElectionTask, 6000, 500, TimeUnit.MICROSECONDS);
             LogEntry logEntry = logModule.getLast();
             if (logEntry != null) {

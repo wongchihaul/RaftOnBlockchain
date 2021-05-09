@@ -70,7 +70,7 @@ public class LeaderElection implements Runnable {
             node.setLeader(PeerSet.leader);
             return;
         } else {
-            long curTime1 = System.currentTimeMillis();
+            long curTime1;
             Random rand = new Random();
 
             //begin election
@@ -82,10 +82,9 @@ public class LeaderElection implements Runnable {
             // vote for itself
             node.setVotedFor(node.getAddr());
 
-            LOGGER.info("node " + node.getPeer() + " becomes a candidate and begins the election," +
-                    " " +
-                    "current term: " + node.getCurrentTerm() + " LastEntry: " + node.getLogModule().getLast()
-                    + "peerset: " + node.getPeerSet());
+            LOGGER.info(String.format("node %s becomes a candidate and begins the election, " +
+                            "current term: %s LastEntry: %s peerset %s",
+                    node.getPeer(), node.getCurrentTerm(), node.getLogModule().getLast(), node.getPeerSet()));
 
 
             Set<Peer> peerSet = node.getPeerSet();
@@ -104,12 +103,14 @@ public class LeaderElection implements Runnable {
             // to follower
             boolean flag = true;
             if (node.getStatus() == NodeStatus.FOLLOWER) {
-                LOGGER.info(String.format("Node{%s} candidate receive AppendEntries RPC from valid leader, return to follower", node.getAddr()));
+                LOGGER.info(String.format(
+                        "Node{%s} candidate receive AppendEntries RPC from valid leader, return to follower",
+                        node.getAddr()));
                 flag = false;
             }
             if (flag) {
-                System.out.println(("votesCount from peers: " + votesCount[0].get() + " peer " +
-                        "number: " + node.getPeerSet().size()));
+                System.out.printf("votesCount from peers: %d peer number: %d%n",
+                        votesCount[0].get(), node.getPeerSet().size());
                 //check votes from a majority of the servers, add vote from itself
                 if (votesCount[0].get() + 1 > (node.getPeerSet().size() + 1) / 2) {
                     LOGGER.info("The Node " + node.getAddr() + " becomes leader");
@@ -133,12 +134,14 @@ public class LeaderElection implements Runnable {
 
 
                 } else {
+                    curTime1 = System.currentTimeMillis();
                     waitForAWhile(curTime1, timeout);
                     votesCount[0].set(0);
                     System.out.println("no leader elected yet and start over");
                     startElection();
                 }
             } else {
+                curTime1 = System.currentTimeMillis();
                 waitForAWhile(curTime1, timeout);
                 if (PeerSet.leader == null) {
                     votesCount[0].set(0);
@@ -150,10 +153,12 @@ public class LeaderElection implements Runnable {
 
     public void waitForAWhile(long start, long timeout) {
         long now = System.currentTimeMillis();
+        node.setStatus(NodeStatus.FOLLOWER);
+        node.setVotedFor(null);
         while (true) {
             if (now - start < timeout) {
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(50);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
