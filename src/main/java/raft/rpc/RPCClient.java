@@ -38,7 +38,6 @@ public class RPCClient implements Serializable {
         try {
 //            System.out.println(addr + " " + rpcClient.checkConnection(addr));
             rpcResp = (RPCResp) rpcClient.invokeSync(addr, rpcReq, timeout);
-            System.out.println("@@@@@@@@");
         } catch (RemotingException e) {
             logger.severe("RPC server host cannot be found: " + addr);
             e.printStackTrace();

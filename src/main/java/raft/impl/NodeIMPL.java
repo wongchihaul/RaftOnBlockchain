@@ -207,9 +207,9 @@ public class NodeIMPL implements Node {
     }
 
     public KVAck handleClientReq(KVReq req) {
-//        LOGGER.warning(String.format("handlerClientRequest handler %s operation", KVReq.Type.value(req.getType())));
+        LOGGER.warning(String.format("handlerClientRequest handler %s operation", req));
 
-        System.out.println("==============");
+        //System.out.println("==============");
         if (status != NodeStatus.LEADER) {
             LOGGER.warning("I not am leader , only invoke redirect method");
             return redirect(req);
