@@ -38,6 +38,7 @@ public class HeartBeat implements Runnable {
     public void run() {
         // Only leader sends Append Entry RPC with empty entries as heartbeat
         if (node.getStatus() != NodeStatus.LEADER) {
+            node.getScheduledHeartBeatTask().cancel(true);
             return;
         }
 
@@ -63,7 +64,7 @@ public class HeartBeat implements Runnable {
 
         // remove dead peers
         if (node.getStatus() == NodeStatus.LEADER) {
-            peerSet.retainAll(alivePeers);
+//            peerSet.retainAll(alivePeers);
             node.setPeerSet(peerSet);
         }
 

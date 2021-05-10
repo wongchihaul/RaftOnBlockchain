@@ -11,6 +11,7 @@ import raft.Node;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.common.ReqType;
+import raft.concurrent.RaftConcurrent;
 import raft.entity.*;
 import raft.rpc.RPCClient;
 import raft.rpc.RPCReq;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static raft.common.PeerSet.getOthers;
@@ -104,7 +106,7 @@ public class NodeIMPL implements Node {
 
     public volatile long prevElectionTime = 0;
     //the election timeouts are chosen randomly from a ﬁxed interval(150-300ms) as suggested
-    public volatile int electionTimeOut = 150;
+    public volatile int electionTimeOut = 250;
 
 
     public volatile long preHeartBeat = 0;
@@ -170,10 +172,10 @@ public class NodeIMPL implements Node {
 
 
             LeaderElection leaderElection = new LeaderElection(this);
-            RaftThreadPool.submit(leaderElection);
+//            RaftThreadPool.submit(leaderElection);
 //            Random rand = new Random();
 //            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 2000 + rand.nextInt(5) * 1000, 500, TimeUnit.MILLISECONDS);
-//            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 2000, 500, TimeUnit.MILLISECONDS);
+            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 3000, 500, TimeUnit.MILLISECONDS);
             LogEntry logEntry = logModule.getLast();
             if (logEntry != null) {
                 currentTerm = logEntry.getTerm();

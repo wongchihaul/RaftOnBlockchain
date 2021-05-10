@@ -110,6 +110,8 @@ public class ConsensusIMPL implements Consensus {
             node.setCurrentTerm(param.getTerm());
             node.setLeader(new Peer(id, Peer.getIP(id) + (Peer.getPort(id) - 100)));
 
+            node.prevElectionTime = System.currentTimeMillis();
+
             // heartbeat
             if (param.getLogEntries().size() == 0) {
                 logger.info(String.format(
