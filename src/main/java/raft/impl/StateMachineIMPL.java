@@ -47,7 +47,7 @@ public class StateMachineIMPL implements StateMachine {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.setnx(key, value);
+            jedis.set(key, value);
             // also save logs, because state machine module and log entry module share same jedis instance
             // should be optimized, e.g. use disk-based database, if data becomes huge.
             System.out.println("Saving now");
