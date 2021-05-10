@@ -98,13 +98,18 @@ public class ConsensusIMPL implements Consensus {
                 logger.severe("Get Lock fail");
                 return AppEntryResult.fail(node);
             }
+            if(param.getLogEntries().size() != 0){
+                logger.info("trying append entry...." +param.getLogEntries().toString());
+            }
+
 
             // Requirement 1
             if (param.getTerm() < node.getCurrentTerm()) {
-                System.out.println("!!!");
+                System.out.println("!!! requirement1");
                 return AppEntryResult.fail(node);
-            } else {
-                node.status = NodeStatus.FOLLOWER;
+
+//            } else {
+//                node.status = NodeStatus.FOLLOWER;
             }
             String id = param.getLeaderId();
             node.setCurrentTerm(param.getTerm());

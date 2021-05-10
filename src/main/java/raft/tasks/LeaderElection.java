@@ -125,7 +125,7 @@ public class LeaderElection implements Runnable {
                 // set indexes
                 long currIndex = node.getCommitIndex();
                 for (Peer peer : node.getPeerSet()) {
-                    node.getNextIndexes().put(peer, currIndex + 1);
+                    node.getNextIndexes().put(peer, node.getLogModule().getLastIndex() + 1);
                     node.getLatestIndexes().put(peer, 0L);
                 }
 
@@ -174,7 +174,7 @@ public class LeaderElection implements Runnable {
 
     RPCResp sendVoteReq(Peer peer) {
         LogModule logModule = node.getLogModule();
-        long lastTerm = 0;
+        long lastTerm = 0L;
         LogEntry currLast = logModule.getLast();
         if (currLast != null) {
             lastTerm = currLast.getTerm();

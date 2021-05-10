@@ -1,6 +1,7 @@
 package raft.impl;
 
 import com.alibaba.fastjson.JSON;
+import org.json.simple.parser.ParseException;
 import raft.LogModule;
 import raft.entity.LogEntry;
 import redis.clients.jedis.Jedis;
@@ -8,6 +9,8 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.util.UUID;
+
+import static client.BlockChainClient.StringToObject;
 
 public class LogModuleIMPL implements LogModule {
     NodeIMPL node;
@@ -40,12 +43,15 @@ public class LogModuleIMPL implements LogModule {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            String entry = jedis.lindex(uuid, index-1);
+            String entry = jedis.lindex(uuid, index);
             if (entry == null) {
                 return null;
             }
-            return JSON.parseObject(entry, LogEntry.class);
-        } catch (JedisException e) {
+            return StringToObject(jedis.lindex(uuid, index));
+
+
+            //return JSON.parseObject(entry, LogEntry.class);
+        } catch (JedisException | ParseException e) {
             e.printStackTrace();
         } finally {
             jedis.close();
@@ -83,7 +89,9 @@ public class LogModuleIMPL implements LogModule {
         Long lastIndex = null;
         try {
             jedis = jedisPool.getResource();
-            lastIndex = jedis.llen(uuid) == 0 ? 1 : jedis.llen(uuid);
+            System.out.println("$$$the jedis uuid length is" + jedis.llen(uuid));
+            //lastIndex = jedis.llen(uuid) == 0 ? 1 : jedis.llen(uuid);
+            lastIndex = jedis.llen(uuid)-1;
         } catch (JedisException e) {
             e.printStackTrace();
         } finally {

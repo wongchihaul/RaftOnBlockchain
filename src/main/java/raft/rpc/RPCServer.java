@@ -80,7 +80,7 @@ public class RPCServer {
             case KV:
                 //System.out.println("KVok!!");
                 result = node.handleClientReq((KVReq) rpcReq.getParam());
-                System.out.println("Successfully get result" + result);
+                System.out.println(node+" Successfully get result" + result);
                 break;
 
             default:

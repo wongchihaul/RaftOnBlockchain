@@ -11,7 +11,7 @@ import java.util.Objects;
 
 @Getter
 @Setter
-@Builder
+//@Builder
 public class LogEntry implements Serializable, Comparable {
 
     private long term;
@@ -22,6 +22,21 @@ public class LogEntry implements Serializable, Comparable {
 
     private NoobChain noobChain;
 
+    public LogEntry(){
+
+    }
+
+    public LogEntry(long term, long index, Transaction transaction, NoobChain noobChain) {
+        this.term = term;
+        this.index = index;
+        this.transaction = transaction;
+        this.noobChain = noobChain;
+    }
+
+    public LogEntry(long term, Transaction transaction) {
+        this.term = term;
+        this.transaction = transaction;
+    }
 
     @Override
     public int compareTo(Object o) {

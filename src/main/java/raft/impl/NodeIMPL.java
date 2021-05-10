@@ -78,7 +78,7 @@ public class NodeIMPL implements Node {
     /**
      * 已知的最大的已经被提交的日志条目的索引值
      */
-    volatile long commitIndex;
+    volatile long commitIndex=0;
 
     /**
      * 最后被应用到状态机的日志条目索引值（初始化为 0，持续递增)
@@ -223,15 +223,24 @@ public class NodeIMPL implements Node {
             return KVAck.builder().success(true).val(res).build();
         }
 
-        LogEntry logEntry = LogEntry.builder()
-                .transaction(Transaction.builder().
-                        key(req.getKey()).
+//        LogEntry logEntry = LogEntry.builder()
+//                .transaction(Transaction.builder().
+//                        key(req.getKey()).
+//                        value(req.getValue()).
+//                        noobChain(req.getNoobChain()).
+//                        build())
+//                //.index(this.commitIndex + 1)
+//                .term(currentTerm)
+
+//                .build();
+        Transaction trans = Transaction.builder().
+                                        key(req.getKey()).
                         value(req.getValue()).
                         noobChain(req.getNoobChain()).
-                        build())
-//                .index(this.commitIndex + 1)
-                .term(currentTerm)
-                .build();
+                        build();
+        LogEntry logEntry = new LogEntry( currentTerm, trans);
+
+
         logModule.write(logEntry);
 
         var replicaResult = RaftThreadPool.submit(new Replication(this, logEntry));
