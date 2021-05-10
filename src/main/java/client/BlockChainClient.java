@@ -3,26 +3,19 @@ package client;
 
 import chainUtils.Block;
 import chainUtils.NoobChain;
-//import com.alibaba.fastjson.JSONObject;
 import com.alipay.remoting.exception.RemotingException;
 import com.google.common.collect.Lists;
-
-//import org.json.JSONArray;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import raft.common.Peer;
 import raft.common.RDBParser;
 import raft.common.ReqType;
-import raft.impl.NodeIMPL;
-import raft.impl.StateMachineIMPL;
 import raft.rpc.RPCClient;
 import raft.rpc.RPCReq;
 import raft.rpc.RPCResp;
-
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,13 +24,14 @@ import java.util.List;
 import static client.KVReq.GET;
 import static client.KVReq.PUT;
 
-public class BlockChainClient{
+public class BlockChainClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(BlockChainClient.class);
 
 
     private final static RPCClient client = new RPCClient();
 
-    static String addr = "localhost:6481";
+    static String addr = "localhost:6480";
+    static String getAddr = "localhost:6483";
     static String redisAddr = "localhost:6381";
     static List<String> list = Lists.newArrayList("localhost:6481", "localhost:6480", "localhost" +
             ":6483");
@@ -105,7 +99,7 @@ public class BlockChainClient{
         nc.addBlock(newBlock);
 //        System.out.println(nc);
 
-        KVReq obj = KVReq.builder().key("DA").value("chongchongchong").type(PUT).noobChain(nc).build();
+        KVReq obj = KVReq.builder().key("Blood").value("Sucker").type(PUT).noobChain(nc).build();
         System.out.println("BlockChain successfully created " + nc + " sending to server...");
 
 
@@ -125,16 +119,21 @@ public class BlockChainClient{
         Thread.sleep(1000 * 10);
 
 
-        KVReq get = KVReq.builder().key("DA").type(GET).noobChain(nc).build();
-        RPCReq rg = RPCReq.builder().requestType(ReqType.KV).addr(addr).param(get).build();
-        RPCResp responseg;
+        KVReq get = KVReq.builder().key("Blood").type(GET).noobChain(nc).build();
+        RPCReq rg1 = RPCReq.builder().requestType(ReqType.KV).addr(getAddr).param(get).build();
+        RPCReq rg2 = RPCReq.builder().requestType(ReqType.KV).addr(addr).param(get).build();
+        RPCResp responseg1;
+        RPCResp responseg2;
         try {
-            responseg = client.sendReq(rg);
-            var result = (KVAck) responseg.getResult();
-            System.out.println(result.getVal());
+            responseg1 = client.sendReq(rg1);
+            var result1 = (KVAck) responseg1.getResult();
+            System.out.println(result1.getVal());
+            responseg2 = client.sendReq(rg2);
+            var result2 = (KVAck) responseg2.getResult();
+            System.out.println(result2.getVal());
         } catch (Exception e) {
             // r.setAddr(list.get((int) ((count.incrementAndGet()) % list.size())));
-            responseg = client.sendReq(rg);
+
         }
 
 //        LOGGER.info("request content : {}, url : {}, put response : {}",
