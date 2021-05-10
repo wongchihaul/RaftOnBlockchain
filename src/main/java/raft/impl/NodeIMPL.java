@@ -11,7 +11,6 @@ import raft.Node;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.common.ReqType;
-import raft.concurrent.RaftConcurrent;
 import raft.entity.*;
 import raft.rpc.RPCClient;
 import raft.rpc.RPCReq;
@@ -24,10 +23,8 @@ import redis.clients.jedis.JedisPool;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static raft.common.PeerSet.getOthers;
@@ -173,12 +170,10 @@ public class NodeIMPL implements Node {
 
 
             LeaderElection leaderElection = new LeaderElection(this);
-//            LeaderElectionTask leaderElectionTask = new LeaderElectionTask(this);
-//            RaftThreadPool.submit(leaderElection);
-            Random rand = new Random();
+            RaftThreadPool.submit(leaderElection);
+//            Random rand = new Random();
 //            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 2000 + rand.nextInt(5) * 1000, 500, TimeUnit.MILLISECONDS);
-            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 3000, 500, TimeUnit.MILLISECONDS);
-//            scheduler.scheduleAtFixedRate(leaderElectionTask, 6000, 500, TimeUnit.MICROSECONDS);
+//            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 2000, 500, TimeUnit.MILLISECONDS);
             LogEntry logEntry = logModule.getLast();
             if (logEntry != null) {
                 currentTerm = logEntry.getTerm();
@@ -204,7 +199,7 @@ public class NodeIMPL implements Node {
 
     @Override
     public AppEntryResult handleAppEntry(AppEntryParam param) {
-        LOGGER.info(String.format("Append Entry param info: %s", param));
+//        LOGGER.info(String.format("Append Entry param info: %s", param));
         return consensus.appendEntry(param);
     }
 

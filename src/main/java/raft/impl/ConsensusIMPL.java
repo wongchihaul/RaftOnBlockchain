@@ -95,7 +95,7 @@ public class ConsensusIMPL implements Consensus {
     public AppEntryResult appendEntry(AppEntryParam param) {
         try {
             if (!appEntryLock.tryLock()) {
-                System.out.println("??");
+                logger.severe("Get Lock fail");
                 return AppEntryResult.fail(node);
             }
 
@@ -112,8 +112,9 @@ public class ConsensusIMPL implements Consensus {
 
             // heartbeat
             if (param.getLogEntries().size() == 0) {
-                logger.info(String.format("node{%s} successfully appends heartbeat, its term: %s, self term: %s",
-                        param.getLeaderId(), param.getTerm(), node.getCurrentTerm()));
+                logger.info(String.format(
+                        "node{%s} successfully appends heartbeat from leader{%s}, its term: %s, self term: %s",
+                        node.getAddr(), param.getLeaderId(), param.getTerm(), node.getCurrentTerm()));
                 return AppEntryResult.success(node);
             }
 

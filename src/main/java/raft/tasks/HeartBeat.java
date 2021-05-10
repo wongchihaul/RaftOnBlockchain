@@ -83,6 +83,7 @@ public class HeartBeat implements Runnable {
                 .requestType(ReqType.APP_ENTRY)
                 .build();
         // Send heartbeats to all peers exclude self
+        LOGGER.info(String.format("node{%s} send heartbeat to node{%s}", node.getAddr(), peer.getAddr()));
         RPCResp rpcResp = node.getRpcClient().sendReq(rpcReq);
 //        System.out.println(rpcResp);
         return rpcResp;

@@ -67,11 +67,12 @@ public class LeaderElection implements Runnable {
 
     void startElection() {
         if (PeerSet.leader != null) {
+            System.out.println("set leader in start election");
+            System.out.printf("node{%s}%n", node.getAddr());
             node.setLeader(PeerSet.leader);
             return;
         } else {
             long curTime1;
-            Random rand = new Random();
 
             //begin election
             node.setStatus(NodeStatus.CANDIDATE);
@@ -90,6 +91,7 @@ public class LeaderElection implements Runnable {
             Set<Peer> peerSet = node.getPeerSet();
 
             //election timeout is (150-300ms)
+            Random rand = new Random();
             int timeout = NodeIMPL.ELECTION_TIMEOUT + rand.nextInt(150);
 
             CompletableFuture[] cfs = peerSet.stream()
