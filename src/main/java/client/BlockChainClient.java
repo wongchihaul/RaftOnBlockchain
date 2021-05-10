@@ -100,7 +100,7 @@ public class BlockChainClient {
             newBlock = new Block(nc.getBlockchain().get(nc.getBlockchain().size() - 1).hash);
         }
 
-        newBlock.addTransaction("bbbbbba:1234");
+        newBlock.addTransaction("rrrrrrrc:1234");
         nc.addBlock(newBlock);
 //        System.out.println(nc);
 

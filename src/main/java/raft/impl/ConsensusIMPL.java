@@ -140,7 +140,7 @@ public class ConsensusIMPL implements Consensus {
 
             //Requirement 3 & 4
             System.out.println("####hhh");
-            long currIndex = param.getPrevLogIndex() + 1;
+            long currIndex = param.getPrevLogIndex() + 100;
             LogEntry existingEntry = node.getLogModule().read(currIndex);
 //            System.out.println("existing entry");
             if (existingEntry != null) {

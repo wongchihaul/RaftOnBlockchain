@@ -37,6 +37,11 @@ public class LogEntry implements Serializable, Comparable {
         this.term = term;
         this.transaction = transaction;
     }
+    public LogEntry(long index,long term, Transaction transaction) {
+        this.index = index;
+        this.term = term;
+        this.transaction = transaction;
+    }
 
     @Override
     public int compareTo(Object o) {

@@ -34,8 +34,10 @@ public class Replication implements Runnable {
     public Replication(NodeIMPL node, LogEntry logEntryToSent) {
         this.node = node;
         this.logEntryToSent = logEntryToSent;
+        this.logEntryToSent.setIndex(this.node.getLogModule().getLastIndex());
         this.exs = Executors.newFixedThreadPool(4); // 1 self +  4 peers = 5 nodes in total
     }
+
 
     @Override
     public void run() {
@@ -200,6 +202,7 @@ public class Replication implements Runnable {
             entry = node.getLogModule().read(logEntry.getIndex() - 1);
             LOGGER.warning("previous entry not null, is "+ entry);
         }
+
 
 //        if (entry == null) {
 //            LOGGER.warning("get perLog is null , parameter logEntry : " + logEntry);

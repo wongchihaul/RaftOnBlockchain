@@ -238,7 +238,9 @@ public class NodeIMPL implements Node {
                         value(req.getValue()).
                         noobChain(req.getNoobChain()).
                         build();
-        LogEntry logEntry = new LogEntry( currentTerm, trans);
+
+        LogEntry logEntry = new LogEntry(currentTerm, trans);
+
 
 
         logModule.write(logEntry);
