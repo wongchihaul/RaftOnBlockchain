@@ -2,21 +2,19 @@ package client;
 
 import chainUtils.Block;
 import chainUtils.NoobChain;
-import chainUtils.Transaction;
-import chainUtils.Wallet;
 import com.alipay.remoting.exception.RemotingException;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raft.common.ReqType;
-import raft.entity.LogEntry;
 import raft.rpc.RPCClient;
 import raft.rpc.RPCReq;
 import raft.rpc.RPCResp;
 
-import java.security.Security;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+
+import static client.KVReq.GET;
+import static client.KVReq.PUT;
 
 public class BlockChainClient{
     private static final Logger LOGGER = LoggerFactory.getLogger(BlockChainClient.class);
@@ -24,7 +22,7 @@ public class BlockChainClient{
 
     private final static RPCClient client = new RPCClient();
 
-    static String addr = "localhost:6480";
+    static String addr = "localhost:6481";
     static List<String> list = Lists.newArrayList("localhost:6481", "localhost:6480", "localhost" +
             ":6483");
 
@@ -39,11 +37,11 @@ public class BlockChainClient{
         //Wallet walletA = new Wallet();
 
 
-        b1.addTransaction("kkk:6");
+        b1.addTransaction("kkk:888");
         nc.addBlock(b1);
-        System.out.println(nc);
+//        System.out.println(nc);
 
-        KVReq obj = KVReq.builder().key("a").value("3").type(0).noobChain(nc).build();
+        KVReq obj = KVReq.builder().key("DA").value("chongchongchong").type(PUT).noobChain(nc).build();
         System.out.println("BlockChain successfully created " + nc + " sending to server...");
 
 
@@ -53,9 +51,26 @@ public class BlockChainClient{
         RPCResp response;
         try {
             response = client.sendReq(r);
+            var result = (KVAck) response.getResult();
+            System.out.println(result.isSuccess());
         } catch (Exception e) {
             // r.setAddr(list.get((int) ((count.incrementAndGet()) % list.size())));
             response = client.sendReq(r);
+        }
+
+        Thread.sleep(1000 * 10);
+
+
+        KVReq get = KVReq.builder().key("DA").type(GET).noobChain(nc).build();
+        RPCReq rg = RPCReq.builder().requestType(ReqType.KV).addr(addr).param(get).build();
+        RPCResp responseg;
+        try {
+            responseg = client.sendReq(rg);
+            var result = (KVAck) responseg.getResult();
+            System.out.println(result.getVal());
+        } catch (Exception e) {
+            // r.setAddr(list.get((int) ((count.incrementAndGet()) % list.size())));
+            responseg = client.sendReq(rg);
         }
 
 //        LOGGER.info("request content : {}, url : {}, put response : {}",

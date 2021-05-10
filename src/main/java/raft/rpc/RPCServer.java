@@ -58,6 +58,7 @@ public class RPCServer {
     public RPCResp handleReq(RPCReq rpcReq) {
         Object result = false;
         switch (rpcReq.getRequestType()) {
+
             case REQ_VOTE:
                 ReqVoteParam voteParam = (ReqVoteParam) rpcReq.getParam();
                 result = node.handleReqVote(voteParam);
@@ -71,14 +72,17 @@ public class RPCServer {
                             voteParam.getCandidateId(), false, node.getVotedFor()));
                 }
                 break;
+
             case APP_ENTRY:
                 result = node.handleAppEntry((AppEntryParam) rpcReq.getParam());
                 break;
+
             case KV:
                 //System.out.println("KVok!!");
                 result = node.handleClientReq((KVReq) rpcReq.getParam());
                 System.out.println("Successfully get result" + result);
                 break;
+
             default:
                 logger.severe("Unsupported request type");
         }

@@ -11,12 +11,10 @@ import raft.rpc.RPCReq;
 import raft.rpc.RPCResp;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
@@ -29,7 +27,7 @@ public class Replication implements Runnable {
 
     ExecutorService exs;
 
-    AtomicInteger replicaCount;
+    AtomicInteger replicaCount = new AtomicInteger(0);
 
     LogEntry logEntryToSent;
 
@@ -68,19 +66,24 @@ public class Replication implements Runnable {
             return;
         }
 
+
         // 如果存在一个满足N > commitIndex的 N，并且大多数的matchIndex[i] ≥ N成立，
         // 并且log[N].term == currentTerm成立，那么令 commitIndex 等于这个 N （5.3 和 5.4 节）
-        Long[] indexes = node.getLatestIndexes().values().toArray(new Long[0]);
-        Arrays.sort(indexes);
-        Long median = indexes.length >= 2 ? indexes[indexes.length / 2 - 1] : 0;
-        System.out.println("cuocuo"+ node.getLogModule().read(median));
-        if (node.getLogModule().read(median).getTerm() == node.getCurrentTerm()
-                && median > node.getCommitIndex()) {
-            node.setCommitIndex(median);
-        }
-
-        if (replicaCount.get() > peerSet.size() / 2 + 1) {
+//        var indexes = node.getLatestIndexes().values().toArray(new Long[0]);
+//        Arrays.sort(indexes);
+//        Long median = indexes.length >= 2 ? indexes[indexes.length / 2 - 1] : 0;
+//        System.out.println("cuocuo"+ node.getLogModule().read(median));
+//        if (node.getLogModule().read(median).getTerm() == node.getCurrentTerm()
+//                && median > node.getCommitIndex()) {
+//            node.setCommitIndex(median);
+//        }
+        System.out.println(replicaCount.get());
+        System.out.println(peerSet.size() / 2 + 1);
+        if (replicaCount.get() > (peerSet.size() / 2 + 1)) {
+            System.out.println("Replication voting OK");
+            System.out.println(logEntryToSent.getIndex());
             node.setCommitIndex(logEntryToSent.getIndex());
+            System.out.println("Leader apply to statemachine now");
             node.getStateMachine().apply(logEntryToSent);
             node.setLastApplied(logEntryToSent.getIndex());
 //            return ClientKVAck.ok();
@@ -102,7 +105,7 @@ public class Replication implements Runnable {
         LOGGER.info("$$$");
         ArrayList<LogEntry> logEntriesToSend = new ArrayList<>();
         LOGGER.info("nextIndex" + nextIndex+ " EntriesToSend: " + logEntriesToSend);
-        if (logEntry.getIndex() >= nextIndex) {
+        if (logEntry.getIndex() > nextIndex) {
             System.out.println("logEntry Index larger");
             for (long i = nextIndex; i <= logEntry.getIndex(); i++) {
                 LogEntry recordEntry = node.getLogModule().read(i);

@@ -12,4 +12,6 @@ import java.io.Serializable;
 public class KVAck implements Serializable {
 
     boolean success;
+
+    String val;
 }

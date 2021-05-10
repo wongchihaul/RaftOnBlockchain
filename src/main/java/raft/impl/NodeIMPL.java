@@ -29,6 +29,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import static client.KVReq.GET;
 import static raft.common.PeerSet.getOthers;
 import static raft.concurrent.RaftConcurrent.RaftThreadPool;
 import static raft.concurrent.RedisPool.setConfig;
@@ -214,12 +215,21 @@ public class NodeIMPL implements Node {
             return redirect(req);
         }
 
+        if (req.getType() == GET) {
+            String key = req.getKey();
+            String res = this.stateMachine.getVal(key);
+            System.out.println(res);
+            System.out.println(KVAck.builder().success(true).val(res).build());
+            return KVAck.builder().success(true).val(res).build();
+        }
+
         LogEntry logEntry = LogEntry.builder()
                 .transaction(Transaction.builder().
                         key(req.getKey()).
                         value(req.getValue()).
                         noobChain(req.getNoobChain()).
                         build())
+//                .index(this.commitIndex + 1)
                 .term(currentTerm)
                 .build();
         logModule.write(logEntry);
@@ -232,9 +242,9 @@ public class NodeIMPL implements Node {
 
         // in case interrupted before applying to state machine
         if (this.commitIndex == logEntry.getIndex() && this.lastApplied == logEntry.getIndex()) {
-            return KVAck.builder().success(true).build();
+            return KVAck.builder().success(true).val(null).build();
         } else {
-            return KVAck.builder().success(false).build();
+            return KVAck.builder().success(false).val(null).build();
         }
 
 //        final AtomicInteger success = new AtomicInteger(0);

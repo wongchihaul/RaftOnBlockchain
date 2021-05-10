@@ -114,9 +114,9 @@ public class ConsensusIMPL implements Consensus {
 
             // heartbeat
             if (param.getLogEntries().size() == 0) {
-                logger.info(String.format(
-                        "node{%s} successfully appends heartbeat from leader{%s}, its term: %s, self term: %s",
-                        node.getAddr(), param.getLeaderId(), param.getTerm(), node.getCurrentTerm()));
+//                logger.info(String.format(
+//                        "node{%s} successfully appends heartbeat from leader{%s}, its term: %s, self term: %s",
+//                        node.getAddr(), param.getLeaderId(), param.getTerm(), node.getCurrentTerm()));
                 return AppEntryResult.success(node);
             }
 
@@ -129,6 +129,7 @@ public class ConsensusIMPL implements Consensus {
             if(lastEntry!=null){
             if (lastEntry.getTerm() == param.getPrevLogTerm()
                     && lastEntry.getIndex() != param.getPrevLogIndex()) {
+                System.out.println("term same index diff");
                 return AppEntryResult.fail(node);
             }}
 
@@ -136,8 +137,9 @@ public class ConsensusIMPL implements Consensus {
             System.out.println("####hhh");
             long currIndex = param.getPrevLogIndex() + 1;
             LogEntry existingEntry = node.getLogModule().read(currIndex);
-            System.out.println("existing entry");
+//            System.out.println("existing entry");
             if (existingEntry != null) {
+                System.out.println("exsitingEntry: " + node.getLogModule().read(currIndex));
                 //conflict
                 if (existingEntry.getTerm() != param.getLogEntries().get(0).getTerm()) {
                     node.getLogModule().removeLogs(currIndex);
