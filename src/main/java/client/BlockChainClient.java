@@ -43,7 +43,7 @@ public class BlockChainClient{
         nc.addBlock(b1);
         System.out.println(nc);
 
-        KVReq obj = KVReq.builder().key("a").value("3").type(0).noobChain(nc).build();
+        KVReq obj = KVReq.builder().key("z").value("26").type(0).noobChain(nc).build();
         System.out.println("BlockChain successfully created " + nc + " sending to server...");
 
 
