@@ -1,5 +1,6 @@
 package raft.impl;
 
+import com.alibaba.fastjson.JSON;
 import raft.StateMachine;
 import raft.common.Peer;
 import raft.common.RDBParser;
@@ -47,7 +48,8 @@ public class StateMachineIMPL implements StateMachine {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.setnx(key, value);
+            jedis.set(key, value);
+            jedis.set(node.getAddr(), JSON.toJSONString(logEntry));
             // also save logs, because state machine module and log entry module share same jedis instance
             // should be optimized, e.g. use disk-based database, if data becomes huge.
             System.out.println("Saving now");

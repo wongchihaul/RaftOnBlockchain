@@ -8,8 +8,8 @@ public class NoobChain implements Serializable {
     private ArrayList<Block> blockchain = new ArrayList<>();
 
     public NoobChain() {
-        Block genesis = new Block("0");
-        addBlock(genesis);
+        //Block genesis = new Block("0");
+        //addBlock(genesis);
     }
 
     public ArrayList<Block> getBlockchain() {

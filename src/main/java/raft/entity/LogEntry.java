@@ -1,6 +1,7 @@
 package raft.entity;
 
 
+import chainUtils.NoobChain;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +19,8 @@ public class LogEntry implements Serializable, Comparable {
     private long index;
 
     private Transaction transaction;
+
+    private NoobChain noobChain;
 
 
     @Override

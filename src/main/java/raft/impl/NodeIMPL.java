@@ -142,7 +142,7 @@ public class NodeIMPL implements Node {
      * was received by leader (first index is 1)
      * And we will have CRUD of log entries in Redis
      */
-    LogModule logModule;
+    LogModuleIMPL logModule;
 
 
     public NodeIMPL(String addr, String redisAddr) {
