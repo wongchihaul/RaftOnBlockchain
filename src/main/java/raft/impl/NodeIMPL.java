@@ -183,6 +183,7 @@ public class NodeIMPL {
 
     public void destroy() {
         rpcServer.stop();
+        scheduledHeartBeatTask.cancel(true);
     }
 
 
