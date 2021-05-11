@@ -1,5 +1,6 @@
 package demo;
 
+import client.BlockChainTestClient;
 import raft.common.Peer;
 import raft.common.PeerSet;
 import raft.impl.NodeIMPL;
@@ -8,7 +9,7 @@ import java.util.ArrayList;
 
 public class RaftPool {
     public static void main(String[] args) {
-
+        BlockChainTestClient.disableWarning();
         ArrayList<NodeIMPL> nodeList = new ArrayList<>();
         NodeIMPL nodeIMPL = null;
         for (int i = 6380; i <= 6386; i++) {

@@ -1,5 +1,6 @@
 package demo;
 
+import client.BlockChainTestClient;
 import client.KVAck;
 import client.KVReq;
 import com.alipay.remoting.AsyncContext;
@@ -31,7 +32,7 @@ public class NoRaftPool {
     static RpcServer[] rpcServers = new RpcServer[LAST - FIRST + 1];
 
     public static void main(String[] args) {
-
+        BlockChainTestClient.disableWarning();
         for (int i = FIRST; i <= LAST; i++) {
             String addr = "localhost:" + (i + 100);
             String redisAddr = "localhost:" + i;

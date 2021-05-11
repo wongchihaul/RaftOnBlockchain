@@ -1,5 +1,6 @@
 package demo;
 
+import client.BlockChainTestClient;
 import raft.common.Peer;
 import raft.common.PeerSet;
 import raft.impl.NodeIMPL;
@@ -13,7 +14,7 @@ public class Outage {
     static final int LAST = 6384;
 
     public static void main(String[] args) throws InterruptedException {
-
+        BlockChainTestClient.disableWarning();
         ArrayList<NodeIMPL> nodeList = new ArrayList<>();
         NodeIMPL nodeIMPL = null;
 
