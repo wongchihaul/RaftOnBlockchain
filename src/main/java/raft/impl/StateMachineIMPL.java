@@ -24,9 +24,7 @@ public class StateMachineIMPL {
     NodeIMPL node;
     JedisPool jedisPool;
 
-    /**
-     * "redisConfigs/redis-${port}/dump.rdb"
-     */
+    /** "redisConfigs/redis-${port}/dump.rdb" */
     String rdbPath;
 
     //    String confPath;
@@ -77,11 +75,4 @@ public class StateMachineIMPL {
         return null;
     }
 
-//    public void setVal(String key, String value) {
-//
-//    }
-//
-//    public void delVal(String... key) {
-//
-//    }
 }

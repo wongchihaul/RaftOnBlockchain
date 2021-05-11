@@ -32,7 +32,9 @@ public class LogModuleIMPL {
         } catch (JedisException e) {
             e.printStackTrace();
         } finally {
-            jedis.close();
+            if (jedis != null) {
+                jedis.close();
+            }
         }
     }
 
@@ -45,13 +47,12 @@ public class LogModuleIMPL {
                 return null;
             }
             return StringToObject(jedis.lindex(uuid, index));
-
-
-            //return JSON.parseObject(entry, LogEntry.class);
         } catch (JedisException | ParseException e) {
             e.printStackTrace();
         } finally {
-            jedis.close();
+            if (jedis != null) {
+                jedis.close();
+            }
         }
         return null;
     }
@@ -69,7 +70,9 @@ public class LogModuleIMPL {
         } catch (JedisException e) {
             e.printStackTrace();
         } finally {
-            jedis.close();
+            if (jedis != null) {
+                jedis.close();
+            }
         }
     }
 
@@ -89,7 +92,9 @@ public class LogModuleIMPL {
         } catch (JedisException e) {
             e.printStackTrace();
         } finally {
-            jedis.close();
+            if (jedis != null) {
+                jedis.close();
+            }
         }
         return lastIndex;
     }

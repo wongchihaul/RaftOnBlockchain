@@ -11,7 +11,6 @@ import raft.entity.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-
 @Setter
 @Getter
 public class ConsensusIMPL {
@@ -33,8 +32,8 @@ public class ConsensusIMPL {
      * 2. If votedFor is null or candidateId, and candidate’s log is at
      * least as up-to-date as receiver’s log, grant vote (§5.2, §5.4)
      *
-     * @param param
-     * @return
+     * @param param The parameter of Vote request
+     * @return Vote result
      */
     public ReqVoteResult requestVote(ReqVoteParam param) {
         try {
@@ -61,7 +60,7 @@ public class ConsensusIMPL {
                 }
                 // update status
                 String id = param.getCandidateId();
-                node.status = NodeStatus.FOLLOWER;
+                node.setStatus(NodeStatus.FOLLOWER);
                 node.setCurrentTerm(param.getTerm());
                 node.setVotedFor(id);
                 node.setLeader(new Peer(id, Peer.getIP(id) + (Peer.getPort(id) - 100)));
@@ -97,8 +96,8 @@ public class ConsensusIMPL {
                 logger.error("Get Lock fail");
                 return AppEntryResult.fail(node);
             }
-            if(param.getLogEntries().size() != 0){
-                logger.info("trying append entry.... " +param.getLogEntries().toString());
+            if (param.getLogEntries().size() != 0) {
+                logger.info("trying append entry.... " + param.getLogEntries().toString());
             }
 
 
@@ -128,13 +127,13 @@ public class ConsensusIMPL {
 
             LogEntry lastEntry = node.getLogModule().getLast();
 
-//            System.out.println("@@@@!!!!"+lastEntry + node.getLogModule()+node.getAddr());
-            if(lastEntry!=null){
-            if (lastEntry.getTerm() == param.getPrevLogTerm()
-                    && lastEntry.getIndex() != param.getPrevLogIndex()) {
+            if (lastEntry != null) {
+                if (lastEntry.getTerm() == param.getPrevLogTerm()
+                        && lastEntry.getIndex() != param.getPrevLogIndex()) {
 //                System.out.println("term same index diff");
-                return AppEntryResult.fail(node);
-            }}
+                    return AppEntryResult.fail(node);
+                }
+            }
 
             //Requirement 3 & 4
             long currIndex = param.getPrevLogIndex() + 100;

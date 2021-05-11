@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import raft.common.NodeStatus;
 import raft.common.Peer;
+import raft.common.PeerSet;
 import raft.common.ReqType;
 import raft.concurrent.RaftConcurrent;
 import raft.entity.*;
@@ -27,119 +28,72 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static client.KVReq.GET;
-import static raft.common.PeerSet.getOthers;
 import static raft.common.RedisPool.setConfig;
 import static raft.concurrent.RaftConcurrent.RaftThreadPool;
-
-//import java.util.logging.Logger;
 
 
 @Getter
 @Setter
 @ToString
-//@Builder
 public class NodeIMPL {
 
-
     public static final int HEARTBEAT_TICK = 125;
-
     public static final int ELECTION_TIMEOUT = 300;
-
     public static final int REPLICATION_TIMEOUT = 4000;
+    public static final Logger logger = LogManager.getLogger(NodeIMPL.class.getName());
 
-    public static final Logger LOGGER = LogManager.getLogger(NodeIMPL.class.getName());
+    /* =============== Node configure ==================== */
+    private final String addr;
+    private final String redisAddr;
+    private final Peer peer;
+    private JedisPool jedisPool;
 
-    public volatile boolean started;
+    /* ============ Volatile variable of the node ============= */
+    private volatile NodeStatus status = NodeStatus.FOLLOWER;
+    /** CandidateId that received vote in current term (or null if none) */
+    private volatile String votedFor = null;
+    private volatile Peer leader = null;
 
-    // START of Raft properties configuration
-    /**
-     * initialized to 0 on first boot, increases monotonically
-     */
-    long currentTerm = 0;
-
-    /**
-     * candidateId that received vote in current term (or null if none)
-     */
-    volatile String votedFor = null;
-
-    private String addr;
-
-    /**
-     * Options: FOLLOWER(0), CANDIDATE(1), LEADER(2)
-     * Initiate as a FOLLOWER;
-     */
-    volatile NodeStatus status = NodeStatus.FOLLOWER;
-
-    volatile Peer leader = null;
-
-    /* ============ 所有服务器上经常变的 ============= */
-
-    /**
-     * 已知的最大的已经被提交的日志条目的索引值
-     */
-    volatile long commitIndex=0;
-
-    /**
-     * 最后被应用到状态机的日志条目索引值（初始化为 0，持续递增)
-     */
-    volatile long lastApplied = 0;
+    /** initialized to 0 on first boot, increases monotonically */
+    private volatile long currentTerm = 0;
+    /** The latest commit index */
+    private volatile long commitIndex = 0;
+    /** The last Applied index of logEntry (initial as 0, continuously increase) */
+    private volatile long lastApplied = 0;
+    private volatile boolean started;
 
 
+    /** The next index of logEntry for each node. */
+    private Map<Peer, Long> nextIndexes;
+    /** The last applied index of logEntry for each node. */
+    private Map<Peer, Long> latestIndexes;
 
-    /* ========== 在领导人里经常改变的(选举后重新初始化) ================== */
-
-    /**
-     * 对于每一个服务器，需要发送给他的下一个日志条目的索引值（初始化为领导人最后索引值加一）
-     */
-    Map<Peer, Long> nextIndexes = new HashMap<>() ;
-
-    /**
-     * 对于每一个服务器，已经复制给他的日志的最高索引值
-     */
-    Map<Peer, Long> latestIndexes = new HashMap<>();
-
-    /**
-     * Set of peers, excluding self
-     */
+    /** Set of peers, excluding self */
     private volatile Set<Peer> peerSet;
 
 
-    public volatile long prevElectionTime = 0;
-    //the election timeouts are chosen randomly from a ﬁxed interval(150-300ms) as suggested
-    public volatile int electionTimeOut = 250;
-
-
-    public volatile long preHeartBeat = 0;
-    // END of Raft properties configuration
-
-
-    // START of Network and Redis configuration
-
-    private Peer peer;
-
-    JedisPool jedisPool;
-    private String redisAddr;
-
-    private StateMachineIMPL stateMachine;
-    // END of Network and Redis configuration
-
-    private ConsensusIMPL consensus;
-
-    private long lastHeartBeatTime = 0;
-
+    /* ================= RPC related ===================== */
     private RPCClient rpcClient;
     private RPCServer rpcServer;
 
-    //这里用来取消scheduled tasks
-    private ScheduledFuture<?> scheduledHeartBeatTask;
 
+    /* =============== Raft Algorithm related ============== */
     /**
-     * log entries; each entry contains command
-     * for state machine, and term when entry
+     * log entries; each entry contains command for state machine, and term when entry
      * was received by leader (first index is 1)
      * And we will have CRUD of log entries in Redis
      */
-    LogModuleIMPL logModule;
+    private LogModuleIMPL logModule;
+    private StateMachineIMPL stateMachine;
+    private ConsensusIMPL consensus;
+
+
+    /* =============== time variable ================ */
+    public volatile long prevElectionTime = 0;
+    public volatile int electionTimeOut = 250;
+
+    // Use to cancel heartbeat task
+    private ScheduledFuture<?> scheduledHeartBeatTask;
 
 
     public NodeIMPL(String addr, String redisAddr) {
@@ -148,11 +102,14 @@ public class NodeIMPL {
         this.peer = new Peer(addr, redisAddr);
         this.jedisPool = new JedisPool(setConfig(), Peer.getIP(redisAddr), Peer.getPort(redisAddr));
         this.logModule = new LogModuleIMPL(this);
-        this.peerSet = getOthers(this.peer);
+        this.peerSet = PeerSet.getOthers(this.peer);
         this.stateMachine = new StateMachineIMPL(this);
         this.consensus = new ConsensusIMPL(this);
         this.rpcClient = new RPCClient();
         this.rpcServer = new RPCServer(Peer.getPort(addr), this);
+        this.nextIndexes = new HashMap<>();
+        this.latestIndexes = new HashMap<>();
+        this.started = false;
     }
 
     public void init() {
@@ -177,13 +134,14 @@ public class NodeIMPL {
 
             started = true;
 
-            LOGGER.info("start success, selfId : " + this.getAddr());
+            logger.info("start success, selfId : " + this.getAddr());
         }
     }
 
     public void destroy() {
         rpcServer.stop();
         scheduledHeartBeatTask.cancel(true);
+        started = false;
     }
 
 
@@ -198,11 +156,10 @@ public class NodeIMPL {
     }
 
     public KVAck handleClientReq(KVReq req) {
-        LOGGER.debug(String.format("Node{%s} receive request: %s", addr, req));
+        logger.debug(String.format("Node{%s} receive request: %s", addr, req));
 
-        //System.out.println("==============");
         if (status != NodeStatus.LEADER) {
-            LOGGER.info(String.format("Node{%s} is not am leader, redirect to node{%s}", addr, leader.getAddr()));
+            logger.info(String.format("Node{%s} is not am leader, redirect to node{%s}", addr, leader.getAddr()));
             return redirect(req);
         }
 
@@ -221,7 +178,6 @@ public class NodeIMPL {
 //                        build())
 //                //.index(this.commitIndex + 1)
 //                .term(currentTerm)
-
 //                .build();
         Transaction trans = Transaction.builder().
                                         key(req.getKey()).
@@ -238,7 +194,7 @@ public class NodeIMPL {
         var replicaResult = RaftThreadPool.submit(new Replication(this, logEntry));
 
         while (!replicaResult.isDone()) {
-            // wait
+            // wait for replication to finish
         }
 
         // in case interrupted before applying to state machine
@@ -247,21 +203,6 @@ public class NodeIMPL {
         } else {
             return KVAck.builder().success(false).val(null).build();
         }
-
-//        final AtomicInteger success = new AtomicInteger(0);
-//        List<Future<Boolean>> futureList = new CopyOnWriteArrayList<>();
-
-//        int count = 0;
-
-        //  复制到其他机器
-//        for (Peer peer : peerSet.getPeersWithOutSelf()) {
-//            // TODO check self and RaftThreadPool
-//            count++;
-//            // 并行发起 RPC 复制.
-//            futureList.add(replication(peer, logEntry));
-
-//        return null;
-
     }
 
     public KVAck redirect(KVReq req) {
