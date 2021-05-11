@@ -20,6 +20,7 @@ import raft.rpc.RPCResp;
 import java.io.File;
 import java.util.ArrayList;
 
+import static client.BlockChainTestClient.disableWarning;
 import static client.KVReq.GET;
 import static client.KVReq.PUT;
 
@@ -32,6 +33,7 @@ public class BlockChainAutoClient {
     static String addr = "localhost:6481";
 
     public static void main(String[] args) throws RemotingException, InterruptedException, ParseException {
+        disableWarning();
 
         //reading from state machine, get the newest blockchain
         String rdbPath = "redisConfigs/redis-" + (Peer.getPort(addr) - 100) + "/dump.rdb";
@@ -66,7 +68,7 @@ public class BlockChainAutoClient {
 
 
         //add the new block and create a new blockchain
-        KVReq obj = KVReq.builder().key(test_key).value(test_value).type(PUT).noobChain(nc).build();
+        KVReq obj = KVReq.builder().key(test_key).value(test_value).type(PUT).noobChain(nc).demoVersion(true).build();
         System.out.println("========================");
         System.out.println("New BlockChain successfully created " + nc + " sending to server...");
 
@@ -85,7 +87,7 @@ public class BlockChainAutoClient {
         Thread.sleep(1000 * 10);
 
 
-        KVReq get = KVReq.builder().reqKey("a").type(GET).noobChain(nc).build();
+        KVReq get = KVReq.builder().reqKey(test_key.get(0)).type(GET).noobChain(nc).demoVersion(true).build();
         RPCReq rg = RPCReq.builder().requestType(ReqType.KV).addr(addr).param(get).build();
         RPCResp responseg;
         try {

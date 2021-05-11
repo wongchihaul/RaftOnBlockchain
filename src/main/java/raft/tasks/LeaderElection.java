@@ -16,11 +16,7 @@ import raft.rpc.RPCResp;
 
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static raft.concurrent.RaftConcurrent.scheduler;
@@ -51,7 +47,7 @@ public class LeaderElection implements Runnable {
 
     public LeaderElection(NodeIMPL node) {
         this.node = node;
-        this.exs = Executors.newFixedThreadPool(4);     // 1 self +  4 peers = 5 nodes in total
+        this.exs = Executors.newFixedThreadPool(6);     // 1 self +  4 peers = 5 nodes in total
     }
 
     @Override

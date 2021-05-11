@@ -28,7 +28,7 @@ public class HeartBeat implements Runnable {
 
     public HeartBeat(NodeIMPL node) {
         this.node = node;
-        this.exs = Executors.newFixedThreadPool(4);     // 1 self +  4 peers = 5 nodes in total
+        this.exs = Executors.newFixedThreadPool(6);     // 1 self +  4 peers = 5 nodes in total
     }
 
     @Override

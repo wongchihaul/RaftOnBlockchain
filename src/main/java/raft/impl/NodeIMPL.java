@@ -170,28 +170,20 @@ public class NodeIMPL {
             return KVAck.builder().success(true).val(res).build();
         }
 
-//        LogEntry logEntry = LogEntry.builder()
-//                .transaction(Transaction.builder().
-//                        key(req.getKey()).
-//                        value(req.getValue()).
-//                        noobChain(req.getNoobChain()).
-//                        build())
-//                //.index(this.commitIndex + 1)
-//                .term(currentTerm)
-//                .build();
         Transaction trans = Transaction.builder().
-                                        key(req.getKey()).
-                        value(req.getValue()).
-                        noobChain(req.getNoobChain()).
-                        build();
+                key(req.getKey()).
+                value(req.getValue()).
+                noobChain(req.getNoobChain()).
+                build();
 
         LogEntry logEntry = new LogEntry(currentTerm, trans);
 
-
+        boolean demoVersion = false;
+        demoVersion = req.isDemoVersion();
 
         logModule.write(logEntry);
 
-        var replicaResult = RaftThreadPool.submit(new Replication(this, logEntry));
+        var replicaResult = RaftThreadPool.submit(new Replication(this, logEntry, demoVersion));
 
         while (!replicaResult.isDone()) {
             // wait for replication to finish
@@ -214,4 +206,5 @@ public class NodeIMPL {
         RPCResp resp = rpcClient.sendReq(redirectReq);
         return (KVAck) resp.getResult();
     }
+
 }

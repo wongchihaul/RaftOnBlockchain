@@ -23,5 +23,6 @@ public class KVReq implements Serializable {
     NoobChain noobChain;
     ArrayList<String> key;
     String reqKey;
-    ArrayList<String> value ;
+    ArrayList<String> value;
+    boolean demoVersion = false;
 }
