@@ -36,7 +36,7 @@ public class BlockChainTestClient {
             3, "localhost:6483",
             4, "localhost:6484",
             5, "localhost:6485",
-            6, "localhost:6485"
+            6, "localhost:6486"
     );
 
     public static void main(String[] args) throws ParseException {
@@ -45,7 +45,6 @@ public class BlockChainTestClient {
         int option =0;
         addr = getAddr(kbd);
         redisPort = String.valueOf(Peer.getPort(addr)-100);
-        System.out.println("addr"+addr+"port"+redisPort);
 
         while(option !=3) {
             System.out.println("Welcome to Raft BlockChain, please choose from the following options" +
@@ -198,7 +197,6 @@ public class BlockChainTestClient {
         NoobChain nc = new NoobChain();
         //reading from state machine, get the newest blockchain
         String rdbPath = "redisConfigs/redis-" + port + "/dump.rdb";
-        System.out.println("rdbpath" + rdbPath);
         File rdbFile = new File(rdbPath);
         //System.out.println(RDBParser.getVal(rdbFile, addr));
         if (rdbFile.exists()) {
