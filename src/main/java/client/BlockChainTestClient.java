@@ -22,18 +22,26 @@ import static client.KVReq.GET;
 import static client.KVReq.PUT;
 
 public class BlockChainTestClient {
-    private static String addr = "localhost:6481";
+    private static String addr ;
     private final static RPCClient client = new RPCClient();
 
 
     public static void main(String[] args) throws ParseException {
         Scanner kbd = new Scanner(System.in);
         int option =0;
+        System.out.println("Please enter the address of server: (eg.localhost:6481)");
+        addr = kbd.next();
 
         while(option !=3) {
             System.out.println("Welcome to Raft BlockChain, please choose from the following options" +
-                    "(1/2), or enter 3 to EXIT" + "\n" + "1.GET \n2.PUT \n3.EXIT");
-            option = kbd.nextInt();
+                    "(1/2), or enter 3 to EXIT" + "\n" + "1.GET \n2.PUT \n3.EXIT \n4.View Current" +
+                    " BlockChain");
+            try{
+            option = kbd.nextInt();}
+            catch(Exception e){
+                System.out.println("wrong option, exit the system");
+                option =3;
+            }
 
             NoobChain nc = getCurrentChain(addr);
 
@@ -48,6 +56,12 @@ public class BlockChainTestClient {
                 case 3:
                     System.out.println("Bye Bye!!!");
                     System.exit(0);
+                    break;
+                case 4:
+                    System.out.println("===================CURRENT " +
+                            "BLOCKCHAIN=====================");
+                    System.out.println(nc);
+                    System.out.println("===================END BLOCKCHAIN=====================");
                     break;
                 default:
                     System.out.println("Wrong option!!");
