@@ -5,9 +5,6 @@ import client.KVReq;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import raft.Consensus;
-import raft.LogModule;
-import raft.Node;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.common.ReqType;
@@ -17,7 +14,6 @@ import raft.rpc.RPCClient;
 import raft.rpc.RPCReq;
 import raft.rpc.RPCResp;
 import raft.rpc.RPCServer;
-import raft.tasks.HeartBeatTask;
 import raft.tasks.LeaderElection;
 import raft.tasks.Replication;
 import redis.clients.jedis.JedisPool;
@@ -30,16 +26,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static client.KVReq.GET;
+import static demo.RedisPool.setConfig;
 import static raft.common.PeerSet.getOthers;
 import static raft.concurrent.RaftConcurrent.RaftThreadPool;
-import static raft.concurrent.RedisPool.setConfig;
 
 
 @Getter
 @Setter
 @ToString
 //@Builder
-public class NodeIMPL implements Node {
+public class NodeIMPL {
 
 
     public static final int HEARTBEAT_TICK = 125;
@@ -124,14 +120,12 @@ public class NodeIMPL implements Node {
     private StateMachineIMPL stateMachine;
     // END of Network and Redis configuration
 
-    private Consensus consensus;
+    private ConsensusIMPL consensus;
 
     private long lastHeartBeatTime = 0;
 
     private RPCClient rpcClient;
     private RPCServer rpcServer;
-
-    private HeartBeatTask heartBeatTask = new HeartBeatTask(this);
 
     //这里用来取消scheduled tasks
     private ScheduledFuture<?> scheduledHeartBeatTask;
@@ -158,7 +152,6 @@ public class NodeIMPL implements Node {
         this.rpcServer = new RPCServer(Peer.getPort(addr), this);
     }
 
-    @Override
     public void init() {
         if (started) {
             return;
@@ -188,19 +181,16 @@ public class NodeIMPL implements Node {
         }
     }
 
-    @Override
     public void destroy() {
         rpcServer.stop();
     }
 
 
-    @Override
     public ReqVoteResult handleReqVote(ReqVoteParam param) {
         LOGGER.warning(String.format("Node{%s} handle request vote param info: %s", this.getAddr(), param));
         return consensus.requestVote(param);
     }
 
-    @Override
     public AppEntryResult handleAppEntry(AppEntryParam param) {
 //        LOGGER.info(String.format("Append Entry param info: %s", param));
         return consensus.appendEntry(param);
@@ -274,7 +264,6 @@ public class NodeIMPL implements Node {
 
     }
 
-    @Override
     public KVAck redirect(KVReq req) {
         RPCReq redirectReq = RPCReq.builder()
                 .addr(this.getLeader().getAddr())

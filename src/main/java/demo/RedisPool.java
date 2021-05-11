@@ -1,4 +1,4 @@
-package raft.concurrent;
+package demo;
 
 import raft.common.Peer;
 import raft.common.PeerSet;

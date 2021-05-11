@@ -2,7 +2,6 @@ package raft.impl;
 
 import com.alibaba.fastjson.JSON;
 import org.json.simple.parser.ParseException;
-import raft.LogModule;
 import raft.entity.LogEntry;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -12,7 +11,7 @@ import java.util.UUID;
 
 import static client.BlockChainClient.StringToObject;
 
-public class LogModuleIMPL implements LogModule {
+public class LogModuleIMPL {
     NodeIMPL node;
     String uuid;
     JedisPool jedisPool;
@@ -24,7 +23,6 @@ public class LogModuleIMPL implements LogModule {
     }
 
 
-    @Override
     public void write(LogEntry logEntry) {
         Jedis jedis = null;
         try {
@@ -38,7 +36,6 @@ public class LogModuleIMPL implements LogModule {
         }
     }
 
-    @Override
     public LogEntry read(long index) {
         Jedis jedis = null;
         try {
@@ -64,7 +61,6 @@ public class LogModuleIMPL implements LogModule {
      *
      * @param startIndex
      */
-    @Override
     public void removeLogs(Long startIndex) {
         Jedis jedis = null;
         try {
@@ -77,13 +73,11 @@ public class LogModuleIMPL implements LogModule {
         }
     }
 
-    @Override
     public LogEntry getLast() {
         return read(getLastIndex());
     }
 
     // start from 1
-    @Override
     public Long getLastIndex() {
         Jedis jedis = null;
         Long lastIndex = null;

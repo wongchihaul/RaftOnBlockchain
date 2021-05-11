@@ -18,9 +18,6 @@ public class RPCServer {
     RpcServer rpcServer;
     public static final Logger logger = Logger.getLogger(RPCServer.class.getName());
 
-    CONNECTEventProcessor serverConnectProcessor = new CONNECTEventProcessor();
-    DISCONNECTEventProcessor serverDisConnectProcessor = new DISCONNECTEventProcessor();
-
     public RPCServer(int port, NodeIMPL node) {
         this.node = node;
         rpcServer = new RpcServer(port);

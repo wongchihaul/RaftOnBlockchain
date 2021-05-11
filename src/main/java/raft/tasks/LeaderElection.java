@@ -1,6 +1,5 @@
 package raft.tasks;
 
-import raft.LogModule;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.common.PeerSet;
@@ -8,6 +7,7 @@ import raft.common.ReqType;
 import raft.entity.LogEntry;
 import raft.entity.ReqVoteParam;
 import raft.entity.ReqVoteResult;
+import raft.impl.LogModuleIMPL;
 import raft.impl.NodeIMPL;
 import raft.rpc.RPCReq;
 import raft.rpc.RPCResp;
@@ -173,7 +173,7 @@ public class LeaderElection implements Runnable {
 
 
     RPCResp sendVoteReq(Peer peer) {
-        LogModule logModule = node.getLogModule();
+        LogModuleIMPL logModule = node.getLogModule();
         long lastTerm = 0L;
         LogEntry currLast = logModule.getLast();
         if (currLast != null) {

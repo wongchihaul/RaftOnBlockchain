@@ -2,7 +2,6 @@ package raft.impl;
 
 import lombok.Getter;
 import lombok.Setter;
-import raft.Consensus;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.entity.*;
@@ -13,7 +12,7 @@ import java.util.logging.Logger;
 
 @Setter
 @Getter
-public class ConsensusIMPL implements Consensus {
+public class ConsensusIMPL {
 
     public static final Logger logger = Logger.getLogger(ConsensusIMPL.class.getName());
 
@@ -35,7 +34,6 @@ public class ConsensusIMPL implements Consensus {
      * @param param
      * @return
      */
-    @Override
     public ReqVoteResult requestVote(ReqVoteParam param) {
         try {
             if (!reqVoteLock.tryLock()) {
@@ -91,7 +89,6 @@ public class ConsensusIMPL implements Consensus {
      * @param param
      * @return
      */
-    @Override
     public AppEntryResult appendEntry(AppEntryParam param) {
         try {
             if (!appEntryLock.tryLock()) {

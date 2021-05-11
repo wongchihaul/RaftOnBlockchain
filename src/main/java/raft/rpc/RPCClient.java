@@ -11,8 +11,6 @@ import java.util.logging.Logger;
 public class RPCClient implements Serializable {
     public static final Logger logger = Logger.getLogger(RPCClient.class.getName());
 
-    static CONNECTEventProcessor clientConnectProcessor = new CONNECTEventProcessor();
-    static DISCONNECTEventProcessor clientDisConnectProcessor = new DISCONNECTEventProcessor();
     /**
      * Initiate a RPC Client
      */
