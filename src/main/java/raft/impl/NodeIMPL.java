@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static client.KVReq.GET;
-import static demo.RedisPool.setConfig;
 import static raft.common.PeerSet.getOthers;
+import static raft.common.RedisPool.setConfig;
 import static raft.concurrent.RaftConcurrent.RaftThreadPool;
 
 

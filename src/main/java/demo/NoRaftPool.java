@@ -20,12 +20,12 @@ import java.io.File;
 import java.util.concurrent.CompletableFuture;
 
 import static client.KVReq.PUT;
-import static demo.RedisPool.setConfig;
+import static raft.common.RedisPool.setConfig;
 
 
 public class NoRaftPool {
     static final int FIRST = 6380;
-    static final int LAST = 6384;
+    static final int LAST = 6386;
     static JedisPool[] jedisPools = new JedisPool[LAST - FIRST + 1];
     static RpcServer[] rpcServers = new RpcServer[LAST - FIRST + 1];
 
