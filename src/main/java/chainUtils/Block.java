@@ -69,4 +69,14 @@ public class Block implements Serializable {
         );
     }
 
+    @Override
+    public String toString() {
+        return "\nBlock{" +
+                "\nhash='" + hash + '\'' +
+                ", \npreviousHash='" + previousHash + '\'' +
+                ", \nmerkleRoot='" + merkleRoot + '\'' +
+                ", \ntransactions=" + transactions +
+                ", \ntimeStamp=" + timeStamp +
+                '}';
+    }
 }

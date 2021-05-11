@@ -14,12 +14,8 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import raft.common.Peer;
-import raft.common.RDBParser;
 import raft.common.ReqType;
 import raft.entity.LogEntry;
-import raft.impl.NodeIMPL;
-import raft.impl.StateMachineIMPL;
 import raft.rpc.RPCClient;
 import raft.rpc.RPCReq;
 import raft.rpc.RPCResp;
@@ -32,8 +28,8 @@ import java.util.List;
 import static client.KVReq.GET;
 import static client.KVReq.PUT;
 
-public class BlockChainClient {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BlockChainClient.class);
+public class BlockChainAutoClient {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BlockChainAutoClient.class);
 
 
     private final static RPCClient client = new RPCClient();
@@ -46,7 +42,7 @@ public class BlockChainClient {
     public static void main(String[] args) throws RemotingException, InterruptedException, ParseException {
 
 
-        NoobChain nc = new NoobChain();
+        //NoobChain nc = new NoobChain();
 
 
         //reading from state machine, get the newest blockchain
@@ -54,38 +50,9 @@ public class BlockChainClient {
         File rdbFile = new File(rdbPath);
         //System.out.println(RDBParser.getVal(rdbFile, addr));
 
+        NoobChain nc = BlockChainTestClient.getCurrentChain(addr);
 
-        if (rdbFile.exists()) {
-            if (RDBParser.getVal(rdbFile, addr) != null) {
-                System.out.println("Getting data from State Machine...");
-                JSONParser parser = new JSONParser();
-                JSONObject jsonObj = (JSONObject) parser.parse(RDBParser.getVal(rdbFile, addr));
-                JSONObject transaction = (JSONObject) jsonObj.get("transaction");
-                JSONObject noobChain = (JSONObject) transaction.get("noobChain");
-                JSONArray blockChain = (JSONArray) noobChain.get("blockchain");
-                //System.out.println(blockChain);
 
-                for (int i = 0; i < blockChain.size(); i++) {
-                    JSONObject bc = (JSONObject) blockChain.get(i);
-                    ArrayList<String> list = new ArrayList<>();
-                    JSONArray transactionList = (JSONArray) bc.get("transactions");
-
-                    if (transactionList != null) {
-                        for (int j = 0; j < transactionList.size(); j++) {
-                            String trans = (String) transactionList.get(j);
-                            list.add(trans);
-                        }
-                    }
-
-                    //ArrayList<String> list1 = (ArrayList<String>) transactionList;
-                    Block b = new Block(bc.get("hash").toString(), bc.get("previousHash").toString(),
-                            bc.get("previousHash").toString(), list,
-                            Long.parseLong(bc.get("timeStamp").toString()));
-
-                    nc.addBlock(b);
-                }
-            }
-        }
         System.out.println("========================\n Current BlockChain" + nc);
 
 

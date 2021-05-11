@@ -9,7 +9,7 @@ import redis.clients.jedis.exceptions.JedisException;
 
 import java.util.UUID;
 
-import static client.BlockChainClient.StringToObject;
+import static client.BlockChainAutoClient.StringToObject;
 
 public class LogModuleIMPL {
     NodeIMPL node;

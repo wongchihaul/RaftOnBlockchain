@@ -41,7 +41,7 @@ public class RPCClient implements Serializable {
             }
             rpcResp = (RPCResp) rpcClient.invokeSync(addr, rpcReq, timeout);
             if(rpcReq.getRequestType()== ReqType.KV){
-                System.out.println("got request from client" + rpcResp);
+                //System.out.println("got request from client" + rpcResp);
             }
 
         } catch (RemotingException e) {
