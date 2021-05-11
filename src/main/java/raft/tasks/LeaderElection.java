@@ -1,5 +1,7 @@
 package raft.tasks;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.common.PeerSet;
@@ -16,7 +18,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 
 import static raft.concurrent.RaftConcurrent.scheduler;
 
@@ -36,7 +37,7 @@ import static raft.concurrent.RaftConcurrent.scheduler;
  * 4. if timeout， start a new election
  */
 public class LeaderElection implements Runnable {
-    private final static Logger LOGGER = Logger.getLogger(LeaderElection.class.getName());
+    private final static Logger logger = LogManager.getLogger(LeaderElection.class.getName());
 
     NodeIMPL node;
 
@@ -78,9 +79,9 @@ public class LeaderElection implements Runnable {
         // vote for itself
         node.setVotedFor(node.getAddr());
 
-        LOGGER.info(String.format("node %s becomes a candidate and begins the election, " +
-                        "current term: %s LastEntry: %s peerset %s",
-                node.getPeer(), node.getCurrentTerm(), node.getLogModule().getLast(), node.getPeerSet()));
+        logger.warn(String.format("node %s becomes a candidate and begins the election, " +
+                        "current term: %s LastEntry: %s",
+                node.getAddr(), node.getCurrentTerm(), node.getLogModule().getLast()));
 
 
         Set<Peer> peerSet = node.getPeerSet();
@@ -100,17 +101,17 @@ public class LeaderElection implements Runnable {
         // to follower
         boolean flag = true;
         if (node.getStatus() == NodeStatus.FOLLOWER) {
-            LOGGER.info(String.format(
+            logger.info(String.format(
                     "Node{%s} candidate receive AppendEntries RPC from valid leader, return to follower",
                     node.getAddr()));
             flag = false;
         }
         if (flag) {
-            System.out.printf("node{%s} votesCount from peers: %d%n",
-                    node.getAddr(), votesCount[0].get());
+            logger.info(String.format("node{%s} get %d votes from other peers.%n", node.getAddr(), votesCount[0].get()));
             //check votes from a majority of the servers, add vote from itself
             if (votesCount[0].get() > node.getPeerSet().size() / 2) {
-                LOGGER.info("The Node " + node.getAddr() + " becomes leader");
+                logger.info(String.format("The Node{%s} becomes leader with term %s",
+                        node.getAddr(), node.getCurrentTerm()));
                 node.setStatus(NodeStatus.LEADER);
 
                 //set itself to leader

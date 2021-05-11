@@ -1,5 +1,7 @@
 package raft.tasks;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.common.ReqType;
@@ -16,12 +18,11 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Logger;
 
 import static raft.concurrent.RaftConcurrent.RaftThreadPool;
 
 public class HeartBeat implements Runnable {
-    private final static Logger LOGGER = Logger.getLogger(HeartBeat.class.getName());
+    private final static Logger LOGGER = LogManager.getLogger(HeartBeat.class.getName());
 
     NodeIMPL node;
     // Addresses of alive peers

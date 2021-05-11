@@ -83,7 +83,7 @@ public class LogModuleIMPL {
         Long lastIndex = null;
         try {
             jedis = jedisPool.getResource();
-            System.out.println("$$$the jedis uuid length is" + jedis.llen(uuid));
+//            System.out.println("$$$the jedis uuid length is" + jedis.llen(uuid));
             //lastIndex = jedis.llen(uuid) == 0 ? 1 : jedis.llen(uuid);
             lastIndex = jedis.llen(uuid)-1;
         } catch (JedisException e) {

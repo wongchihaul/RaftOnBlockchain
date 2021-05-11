@@ -3,23 +3,19 @@ package client;
 
 import chainUtils.Block;
 import chainUtils.NoobChain;
-//import com.alibaba.fastjson.JSONObject;
 import com.alipay.remoting.exception.RemotingException;
 import com.google.common.collect.Lists;
-
-//import org.json.JSONArray;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import raft.common.ReqType;
 import raft.entity.LogEntry;
 import raft.rpc.RPCClient;
 import raft.rpc.RPCReq;
 import raft.rpc.RPCResp;
-
 
 import java.io.File;
 import java.util.ArrayList;
@@ -28,9 +24,9 @@ import java.util.List;
 import static client.KVReq.GET;
 import static client.KVReq.PUT;
 
-public class BlockChainAutoClient {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BlockChainAutoClient.class);
 
+public class BlockChainAutoClient {
+    private static final Logger LOGGER = LogManager.getLogger(BlockChainAutoClient.class);
 
     private final static RPCClient client = new RPCClient();
 

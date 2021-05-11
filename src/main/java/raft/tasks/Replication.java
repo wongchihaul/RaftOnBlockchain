@@ -1,5 +1,7 @@
 package raft.tasks;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.common.ReqType;
@@ -16,12 +18,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 
 import static raft.concurrent.RaftConcurrent.RaftThreadPool;
 
+
 public class Replication implements Runnable {
-    private final static Logger LOGGER = Logger.getLogger(HeartBeat.class.getName());
+    private final static Logger logger = LogManager.getLogger(HeartBeat.class.getName());
 
     NodeIMPL node;
 
@@ -49,7 +51,6 @@ public class Replication implements Runnable {
 
 
         int timeout = NodeIMPL.REPLICATION_TIMEOUT;
-        System.out.println("***");
 
         CompletableFuture[] cfs = peerSet.stream()
                 .map(peer -> CompletableFuture.supplyAsync(() -> sendReplication(peer, logEntryToSent), this.exs)
@@ -80,20 +81,19 @@ public class Replication implements Runnable {
 //            node.setCommitIndex(median);
 //        }
         System.out.println(replicaCount.get());
-        System.out.println(peerSet.size() / 2 + 1);
         if (replicaCount.get() > (peerSet.size() / 2 + 1)) {
-            System.out.println("Replication voting OK");
-            System.out.println(logEntryToSent.getIndex());
+            logger.info("Replication voting OK");
+            logger.info("logEntryToSent index: " + logEntryToSent.getIndex());
 
             node.setCommitIndex(node.getLogModule().getLastIndex());
-            System.out.println("Leader apply entry to statemachine now, entry is "+ logEntryToSent.toString());
+            logger.info("Leader apply entry to statemachine now, entry is "+ logEntryToSent);
             node.getStateMachine().apply(logEntryToSent);
             node.setLastApplied(logEntryToSent.getIndex());
 //            return ClientKVAck.ok();
         } else {
             // 回滚已经提交的日志.
             node.getLogModule().removeLogs(logEntryToSent.getIndex());
-            LOGGER.warning("fail apply local state  machine,  logEntry info : " + logEntryToSent.toString());
+            logger.warn("fail apply local state  machine,  logEntry info : " + logEntryToSent.toString());
             // TODO 不应用到状态机,但已经记录到日志中.由定时任务从重试队列取出,然后重复尝试,当达到条件时,应用到状态机.
             // 这里应该返回错误, 因为没有成功复制过半机器.
 //            return ClientKVAck.fail();
@@ -106,11 +106,9 @@ public class Replication implements Runnable {
         long endTime = startTime;
         while(endTime - startTime < 3 * 1000L) {
             // The first time LEADER sends replication RPC to FOLLOWERs
-            LOGGER.info("LEADER sending replication..." + node.getNextIndexes());
             long nextIndex = node.getNextIndexes().get(peer);
-            LOGGER.info("$$$");
             ArrayList<LogEntry> logEntriesToSend = new ArrayList<>();
-            LOGGER.info("nextIndex" + nextIndex + " EntriesToSend: " + logEntriesToSend);
+//            LOGGER.info("nextIndex" + nextIndex + " EntriesToSend: " + logEntriesToSend);
             if (logEntry.getIndex() > nextIndex) {
                 System.out.println("logEntry Index larger");
                 for (long i = nextIndex; i <= logEntry.getIndex(); i++) {
@@ -120,14 +118,12 @@ public class Replication implements Runnable {
                     }
                 }
             } else {
-                LOGGER.info("LogEntriesToSend " + logEntryToSent.toString());
                 logEntriesToSend.add(logEntry);
-                LOGGER.info("LogEntriesToSend new  " + logEntriesToSend.toString());
+//                LOGGER.info("LogEntriesToSend new  " + logEntriesToSend.toString());
             }
 
             LogEntry prevLog = getPrevLog(logEntry);
 
-            System.out.println("###" + prevLog);
             AppEntryParam appEntryParam = AppEntryParam.builder()
                     .term(node.getCurrentTerm())
                     .leaderId(node.getAddr())
@@ -136,27 +132,26 @@ public class Replication implements Runnable {
                     .prevLogTerm(prevLog.getTerm())
                     .logEntries(logEntriesToSend)
                     .build();
-            System.out.println("replicate AppEntry Param");
             RPCReq rpcReq = RPCReq.builder()
                     .requestType(ReqType.APP_ENTRY)
                     .param(appEntryParam)
                     .addr(peer.getAddr())
                     .build();
             RPCResp replicaResp = node.getRpcClient().sendReq(rpcReq);
-            System.out.println("replicate appentry" + appEntryParam);
+            System.out.println("replicate appentry " + appEntryParam);
 
             // handle response here
             if (replicaResp == null) {
-                System.out.println("&&&replica Response is null");
+                logger.warn("replica Response is null");
                 return false;
             }
-            System.out.println("RPC response" + replicaResp);
+            logger.info("RPC response: " + replicaResp);
             AppEntryResult replicaResult = (AppEntryResult) replicaResp.getResult();
 
-            System.out.println("replicaResult" + replicaResult);
+            logger.info("replicaResult: " + replicaResult);
             if (replicaResult != null) {
                 if (replicaResult.isSuccess()) {
-                    LOGGER.info(String.format("Append log entries: %s to follower: %s success",
+                    logger.info(String.format("Append log entries: %s to follower: %s success",
                             logEntry.toString(), replicaResult.getPeerAddr()));
                     node.getNextIndexes().put(peer, node.getLogModule().getLastIndex() + 1);
                     node.getLatestIndexes().put(peer, node.getLogModule().getLastIndex());
@@ -164,7 +159,7 @@ public class Replication implements Runnable {
                 } else {
                     // Peer has larger term, turn self to FOLLOWER and start a new election;
                     if (replicaResult.getTerm() > node.getCurrentTerm()) {
-                        LOGGER.info(String.format("The term of peer: %s is larger, becomes follower now", peer.getAddr()));
+                        logger.info(String.format("The term of peer: %s is larger, becomes follower now", peer.getAddr()));
                         node.setCurrentTerm(replicaResult.getTerm());
                         node.setStatus(NodeStatus.FOLLOWER);
                         return false;
@@ -176,23 +171,23 @@ public class Replication implements Runnable {
                         }
 
                         node.getNextIndexes().put(peer, nextIndex - 1);
-                        LOGGER.info(String.format("Append log entries: %s to follower: %s failed, index not matches", logEntry, replicaResult.getPeerAddr()));
+                        logger.info(String.format("Append log entries: %s to follower: %s failed, index not matches", logEntry, replicaResult.getPeerAddr()));
                     }
                 }
             }
             endTime = System.currentTimeMillis();
             return sendReplication(peer, logEntry);
         }
-        LOGGER.warning("replication failed because of timeout");
+        logger.warn("replication failed because of timeout");
         return false;
     }
 
 
     private LogEntry getPrevLog(LogEntry logEntry) {
-        System.out.println("###logEntry.getIndex is " + logEntry.getIndex());
+        logger.info("logEntry index is " + logEntry.getIndex());
         LogEntry entry;
         if(logEntry.getIndex()==0){
-            LOGGER.warning("get perLog is null , parameter logEntry : " + logEntry);
+            logger.warn("get perLog is null , parameter logEntry : " + logEntry);
            // entry = LogEntry.builder().index(0L).term(0).transaction(null).noobChain(null)
             // .build();
             entry = new LogEntry(0,0L,null,null);
@@ -200,7 +195,7 @@ public class Replication implements Runnable {
         else{
 
             entry = node.getLogModule().read(logEntry.getIndex() - 1);
-            LOGGER.warning("previous entry not null, is "+ entry);
+            logger.warn("previous entry not null, is "+ entry);
         }
 
 

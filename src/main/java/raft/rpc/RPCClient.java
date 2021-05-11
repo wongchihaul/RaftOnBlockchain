@@ -2,14 +2,14 @@ package raft.rpc;
 
 import com.alipay.remoting.exception.RemotingException;
 import com.alipay.remoting.rpc.RpcClient;
-import raft.common.ReqType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.Serializable;
-import java.util.logging.Logger;
 
 
 public class RPCClient implements Serializable {
-    public static final Logger logger = Logger.getLogger(RPCClient.class.getName());
+    public static final Logger logger = LogManager.getLogger(RPCClient.class.getName());
 
     /**
      * Initiate a RPC Client
@@ -21,8 +21,6 @@ public class RPCClient implements Serializable {
     private final int timeout = 120000;
 
     static {
-//        rpcClient.addConnectionEventProcessor(ConnectionEventType.CONNECT, clientConnectProcessor);
-//        rpcClient.addConnectionEventProcessor(ConnectionEventType.CLOSE, clientDisConnectProcessor);
         rpcClient.init();
     }
 
@@ -36,19 +34,12 @@ public class RPCClient implements Serializable {
         String addr = rpcReq.getAddr();
         try {
 //            System.out.println(addr + " " + rpcClient.checkConnection(addr));
-            if(rpcReq.getRequestType()== ReqType.KV){
-                System.out.println("getting request from client....");
-            }
             rpcResp = (RPCResp) rpcClient.invokeSync(addr, rpcReq, timeout);
-            if(rpcReq.getRequestType()== ReqType.KV){
-                //System.out.println("got request from client" + rpcResp);
-            }
 
         } catch (RemotingException e) {
-            logger.severe("RPC server host cannot be found: " + addr);
-            e.printStackTrace();
+            logger.warn("RPC server host cannot be found: " + addr);
         } catch (InterruptedException e) {
-            logger.severe("Interrupted while trying to send data to the RPC server: " + addr);
+            logger.warn("Interrupted while trying to send data to the RPC server: " + addr);
         }
         return rpcResp;
     }

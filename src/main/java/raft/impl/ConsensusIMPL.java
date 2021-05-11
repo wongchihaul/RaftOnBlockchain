@@ -2,19 +2,21 @@ package raft.impl;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.entity.*;
 
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Logger;
+
 
 
 @Setter
 @Getter
 public class ConsensusIMPL {
 
-    public static final Logger logger = Logger.getLogger(ConsensusIMPL.class.getName());
+    public static final Logger logger = LogManager.getLogger(ConsensusIMPL.class.getName());
 
     public NodeIMPL node;
 
@@ -92,17 +94,16 @@ public class ConsensusIMPL {
     public AppEntryResult appendEntry(AppEntryParam param) {
         try {
             if (!appEntryLock.tryLock()) {
-                logger.severe("Get Lock fail");
+                logger.error("Get Lock fail");
                 return AppEntryResult.fail(node);
             }
             if(param.getLogEntries().size() != 0){
-                logger.info("trying append entry...." +param.getLogEntries().toString());
+                logger.info("trying append entry.... " +param.getLogEntries().toString());
             }
 
 
             // Requirement 1
             if (param.getTerm() < node.getCurrentTerm()) {
-                System.out.println("!!! requirement1");
                 return AppEntryResult.fail(node);
 
 //            } else {
@@ -127,16 +128,15 @@ public class ConsensusIMPL {
 
             LogEntry lastEntry = node.getLogModule().getLast();
 
-            System.out.println("@@@@!!!!"+lastEntry + node.getLogModule()+node.getAddr());
+//            System.out.println("@@@@!!!!"+lastEntry + node.getLogModule()+node.getAddr());
             if(lastEntry!=null){
             if (lastEntry.getTerm() == param.getPrevLogTerm()
                     && lastEntry.getIndex() != param.getPrevLogIndex()) {
-                System.out.println("term same index diff");
+//                System.out.println("term same index diff");
                 return AppEntryResult.fail(node);
             }}
 
             //Requirement 3 & 4
-            System.out.println("####hhh");
             long currIndex = param.getPrevLogIndex() + 100;
             LogEntry existingEntry = node.getLogModule().read(currIndex);
 //            System.out.println("existing entry");
@@ -159,7 +159,7 @@ public class ConsensusIMPL {
 
             //Requirement 5
             if (node.getCommitIndex() < param.getLeaderCommit()) {
-                System.out.println("goodd");
+//                System.out.println("goodd");
                 long commitIndex = Math.min(node.getLogModule().getLastIndex(), param.getLeaderCommit());
                 node.setCommitIndex(commitIndex);
                 node.setLastApplied(commitIndex);

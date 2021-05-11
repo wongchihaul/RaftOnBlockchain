@@ -1,6 +1,8 @@
 package raft.impl;
 
 import com.alibaba.fastjson.JSON;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import raft.common.Peer;
 import raft.common.RDBParser;
 import raft.entity.LogEntry;
@@ -11,13 +13,13 @@ import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.logging.Logger;
+
 
 public class StateMachineIMPL {
     //TODO: whether we should use disk-based database instead of Redis, since everytime we read
     // data from disk we should shutdown Redis, load RDB file and restart the Redis.
 
-    public static final java.util.logging.Logger logger = Logger.getLogger(StateMachineIMPL.class.getName());
+    public static final Logger logger = LogManager.getLogger(StateMachineIMPL.class.getName());
 
     NodeIMPL node;
     JedisPool jedisPool;
