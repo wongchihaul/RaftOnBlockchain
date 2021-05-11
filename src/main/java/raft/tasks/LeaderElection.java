@@ -132,7 +132,7 @@ public class LeaderElection implements Runnable {
                 node.getLatestIndexes().put(peer, 0L);
             }
         } else {
-            System.out.printf("node{%s} - lose the election back to follower %n", node.getAddr());
+            logger.info(String.format("node{%s} - lose the election back to follower %n", node.getAddr()));
             votesCount[0].set(0);
             node.setStatus(NodeStatus.FOLLOWER);
             node.setVotedFor(null);
