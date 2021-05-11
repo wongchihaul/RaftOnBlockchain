@@ -6,3 +6,25 @@
 37692:M 11 May 2021 12:22:41.911 * Running mode=standalone, port=6386.
 37692:M 11 May 2021 12:22:41.911 # Server initialized
 37692:M 11 May 2021 12:22:41.912 * Ready to accept connections
+352:M 11 May 2021 20:12:53.680 * Background saving started by pid 384
+384:C 11 May 2021 20:12:53.926 * DB saved on disk
+352:M 11 May 2021 20:12:53.943 * Background saving terminated with success
+352:M 11 May 2021 20:14:28.102 * Background saving started by pid 393
+393:C 11 May 2021 20:14:28.142 * DB saved on disk
+352:M 11 May 2021 20:14:28.204 * Background saving terminated with success
+352:M 11 May 2021 20:17:07.389 * DB saved on disk
+352:M 11 May 2021 20:17:07.402 * DB saved on disk
+352:M 11 May 2021 20:17:07.419 * DB saved on disk
+352:M 11 May 2021 20:17:07.437 * DB saved on disk
+352:M 11 May 2021 20:17:07.455 * DB saved on disk
+352:M 11 May 2021 20:17:07.470 * DB saved on disk
+352:M 11 May 2021 20:19:38.048 * Background saving started by pid 402
+402:C 11 May 2021 20:19:38.143 * DB saved on disk
+352:M 11 May 2021 20:19:38.236 * Background saving terminated with success
+352:M 11 May 2021 20:21:38.114 * 1 changes in 30 seconds. Saving...
+352:M 11 May 2021 20:21:38.123 * Background saving started by pid 408
+408:C 11 May 2021 20:21:38.157 * DB saved on disk
+352:M 11 May 2021 20:21:38.227 * Background saving terminated with success
+352:M 11 May 2021 20:22:08.515 * Background saving started by pid 415
+415:C 11 May 2021 20:22:08.554 * DB saved on disk
+352:M 11 May 2021 20:22:08.566 * Background saving terminated with success

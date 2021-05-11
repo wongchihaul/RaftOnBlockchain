@@ -6,3 +6,19 @@
 37639:M 11 May 2021 12:22:32.253 * Running mode=standalone, port=6385.
 37639:M 11 May 2021 12:22:32.253 # Server initialized
 37639:M 11 May 2021 12:22:32.253 * Ready to accept connections
+342:M 11 May 2021 20:12:53.615 * Background saving started by pid 383
+383:C 11 May 2021 20:12:53.880 * DB saved on disk
+342:M 11 May 2021 20:12:53.955 * Background saving terminated with success
+342:M 11 May 2021 20:14:28.129 * Background saving started by pid 395
+395:C 11 May 2021 20:14:28.184 * DB saved on disk
+342:M 11 May 2021 20:14:28.261 * Background saving terminated with success
+342:M 11 May 2021 20:19:37.820 * 1 changes in 30 seconds. Saving...
+342:M 11 May 2021 20:19:37.908 * Background saving started by pid 399
+399:C 11 May 2021 20:19:38.029 * DB saved on disk
+342:M 11 May 2021 20:19:38.163 * Background saving terminated with success
+342:M 11 May 2021 20:19:38.296 * Background saving started by pid 406
+406:C 11 May 2021 20:19:38.330 * DB saved on disk
+342:M 11 May 2021 20:19:38.417 * Background saving terminated with success
+342:M 11 May 2021 20:22:08.147 * Background saving started by pid 413
+413:C 11 May 2021 20:22:08.353 * DB saved on disk
+342:M 11 May 2021 20:22:08.459 * Background saving terminated with success

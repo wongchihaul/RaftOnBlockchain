@@ -4,6 +4,10 @@ package client;
 import chainUtils.Block;
 import chainUtils.NoobChain;
 import com.alipay.remoting.exception.RemotingException;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONArray;
@@ -45,7 +49,7 @@ public class BlockChainAutoClient {
         CommandLine cmd = null;
         try {
             cmd = parser.parse(options, args);
-        } catch (ParseException e1) {
+        } catch (org.apache.commons.cli.ParseException e1) {
             ;
         }
 
@@ -80,10 +84,10 @@ public class BlockChainAutoClient {
         }
         ArrayList<String> test_key = new ArrayList<>();
         ArrayList<String> test_value = new ArrayList<>();
-        test_key.add("c");
-        test_key.add("d");
-        test_value.add("3");
-        test_value.add("4");
+        test_key.add("demo_test");
+        test_key.add("demo_test2");
+        test_value.add("mmm");
+        test_value.add("nnn");
         for(int i =0;i<test_key.size();i++){
             newBlock.addTransaction(test_key.get(i)+":"+test_value.get(i));
         }
@@ -114,6 +118,8 @@ public class BlockChainAutoClient {
         RPCReq rg1 = RPCReq.builder().requestType(ReqType.KV).addr(addr).param(get).build();
         RPCReq rg2 = RPCReq.builder().requestType(ReqType.KV).addr(anotherAddr).param(get).build();
         RPCResp responseg;
+        RPCResp responseg1;
+        RPCResp responseg2;
         try {
             responseg1 = client.sendReq(rg1);
             var result1 = (KVAck) responseg1.getResult();
