@@ -30,7 +30,9 @@ public class BlockChainAutoClient {
 
     private final static RPCClient client = new RPCClient();
 
-    static String addr = "localhost:6481";
+    static String addr = "localhost:6480";
+
+    static String anotherAddr = "localhost:6483";
 
     public static void main(String[] args) throws RemotingException, InterruptedException, ParseException {
 
@@ -109,12 +111,16 @@ public class BlockChainAutoClient {
 
 
         KVReq get = KVReq.builder().reqKey(test_key.get(0)).type(GET).noobChain(nc).demoVersion(demo).build();
-        RPCReq rg = RPCReq.builder().requestType(ReqType.KV).addr(addr).param(get).build();
+        RPCReq rg1 = RPCReq.builder().requestType(ReqType.KV).addr(addr).param(get).build();
+        RPCReq rg2 = RPCReq.builder().requestType(ReqType.KV).addr(anotherAddr).param(get).build();
         RPCResp responseg;
         try {
-            responseg = client.sendReq(rg);
-            var result = (KVAck) responseg.getResult();
-            System.out.println(result.getVal());
+            responseg1 = client.sendReq(rg1);
+            var result1 = (KVAck) responseg1.getResult();
+            System.out.println("Value from leader (localhost:6480): " + result1.getVal());
+            responseg2 = client.sendReq(rg2);
+            var result2 = (KVAck) responseg2.getResult();
+            System.out.println("Value from one follower (localhost:6483): " + result2.getVal());
         } catch (Exception e) {
         }
 
