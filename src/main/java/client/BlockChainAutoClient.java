@@ -33,13 +33,35 @@ public class BlockChainAutoClient {
     static String addr = "localhost:6481";
 
     public static void main(String[] args) throws RemotingException, InterruptedException, ParseException {
+
+
         disableWarning();
+
+        Options options = new Options();
+        options.addOption("demo", true, "server port, an integer");
+
+        CommandLineParser parser = new DefaultParser();
+        CommandLine cmd = null;
+        try {
+            cmd = parser.parse(options, args);
+        } catch (ParseException e1) {
+            help(options);
+        }
+
+        boolean demo = false;
+        if (cmd.hasOption("demo")) {
+            try {
+                demo = Boolean.valueOf(cmd.getOptionValue("demo"));
+            } catch (Exception e) {
+                ;
+            }
+        }
 
         //reading from state machine, get the newest blockchain
         String rdbPath = "redisConfigs/redis-" + (Peer.getPort(addr) - 100) + "/dump.rdb";
         File rdbFile = new File(rdbPath);
 
-        NoobChain nc = BlockChainTestClient.getCurrentChain(addr,String.valueOf(Peer.getPort(addr) - 100));
+        NoobChain nc = BlockChainTestClient.getCurrentChain(addr, String.valueOf(Peer.getPort(addr) - 100));
 
 
         System.out.println("========================\n Current BlockChain" + nc);
@@ -68,7 +90,7 @@ public class BlockChainAutoClient {
 
 
         //add the new block and create a new blockchain
-        KVReq obj = KVReq.builder().key(test_key).value(test_value).type(PUT).noobChain(nc).demoVersion(true).build();
+        KVReq obj = KVReq.builder().key(test_key).value(test_value).type(PUT).noobChain(nc).demoVersion(demo).build();
         System.out.println("========================");
         System.out.println("New BlockChain successfully created " + nc + " sending to server...");
 
@@ -87,7 +109,7 @@ public class BlockChainAutoClient {
         Thread.sleep(1000 * 10);
 
 
-        KVReq get = KVReq.builder().reqKey(test_key.get(0)).type(GET).noobChain(nc).demoVersion(true).build();
+        KVReq get = KVReq.builder().reqKey(test_key.get(0)).type(GET).noobChain(nc).demoVersion(demo).build();
         RPCReq rg = RPCReq.builder().requestType(ReqType.KV).addr(addr).param(get).build();
         RPCResp responseg;
         try {
