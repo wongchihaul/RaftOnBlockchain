@@ -11,13 +11,13 @@ public class RaftPool {
 
         ArrayList<NodeIMPL> nodeList = new ArrayList<>();
         NodeIMPL nodeIMPL = null;
-        for (int i = 6380; i <= 6384; i++) {
+        for (int i = 6380; i <= 6386; i++) {
             String addr = "localhost:" + (i + 100);
             String redisAddr = "localhost:" + i;
             Peer peer = new Peer(addr, redisAddr);
             PeerSet.peerSet.add(peer);
         }
-        for (int i = 6380; i <= 6384; i++) {
+        for (int i = 6380; i <= 6386; i++) {
             String addr = "localhost:" + (i + 100);
             String redisAddr = "localhost:" + i;
             nodeIMPL = new NodeIMPL(addr, redisAddr);

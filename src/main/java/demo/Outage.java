@@ -31,7 +31,6 @@ public class Outage {
             nodeList.add(nodeIMPL);
         }
 
-        nodeList.forEach(NodeIMPL::init);
 
         Thread.sleep(1000 * 10);
 
@@ -47,8 +46,6 @@ public class Outage {
         }
 
         Thread.sleep(1000 * 10);
-
-        nodeList.forEach(System.out::println);
 
         assertNotEquals(leader, PeerSet.leader);
     }

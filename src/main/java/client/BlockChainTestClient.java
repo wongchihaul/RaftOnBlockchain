@@ -216,7 +216,6 @@ public class BlockChainTestClient {
                         }
                     }
 
-                    //ArrayList<String> list1 = (ArrayList<String>) transactionList;
                     Block b = new Block(bc.get("hash").toString(), bc.get("previousHash").toString(),
                             bc.get("previousHash").toString(), list,
                             Long.parseLong(bc.get("timeStamp").toString()));

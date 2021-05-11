@@ -4,13 +4,13 @@ package client;
 import chainUtils.Block;
 import chainUtils.NoobChain;
 import com.alipay.remoting.exception.RemotingException;
-import com.google.common.collect.Lists;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import raft.common.Peer;
 import raft.common.ReqType;
 import raft.entity.LogEntry;
 import raft.rpc.RPCClient;
@@ -19,7 +19,6 @@ import raft.rpc.RPCResp;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 
 import static client.KVReq.GET;
 import static client.KVReq.PUT;
@@ -31,20 +30,12 @@ public class BlockChainAutoClient {
     private final static RPCClient client = new RPCClient();
 
     static String addr = "localhost:6481";
-    static String redisAddr = "localhost:6381";
-    static List<String> list = Lists.newArrayList("localhost:6481", "localhost:6480", "localhost" +
-            ":6483");
 
     public static void main(String[] args) throws RemotingException, InterruptedException, ParseException {
 
-
-        //NoobChain nc = new NoobChain();
-
-
         //reading from state machine, get the newest blockchain
-        String rdbPath = "redisConfigs/redis-" + "6381" + "/dump.rdb";
+        String rdbPath = "redisConfigs/redis-" + (Peer.getPort(addr) - 100) + "/dump.rdb";
         File rdbFile = new File(rdbPath);
-        //System.out.println(RDBParser.getVal(rdbFile, addr));
 
         NoobChain nc = BlockChainTestClient.getCurrentChain(addr);
 
@@ -72,7 +63,6 @@ public class BlockChainAutoClient {
             newBlock.addTransaction(test_key.get(i)+":"+test_value.get(i));
         }
         nc.addBlock(newBlock);
-//        System.out.println(nc);
 
 
         //add the new block and create a new blockchain
@@ -89,7 +79,6 @@ public class BlockChainAutoClient {
             var result = (KVAck) response.getResult();
             System.out.println(result.isSuccess());
         } catch (Exception e) {
-            // r.setAddr(list.get((int) ((count.incrementAndGet()) % list.size())));
             response = client.sendReq(r);
         }
 
@@ -104,40 +93,10 @@ public class BlockChainAutoClient {
             var result = (KVAck) responseg.getResult();
             System.out.println(result.getVal());
         } catch (Exception e) {
-            // r.setAddr(list.get((int) ((count.incrementAndGet()) % list.size())));
-            responseg = client.sendReq(rg);
         }
 
         LOGGER.info("request content : {}, url : {}, put response : {}",
                         obj.key + "=" + obj.getValue(), r.getAddr(), response.getResult());
-
-        // SleepHelper.sleep(1000);
-
-        //obj = KVReq.newBuilder().key("hello:" + i).type(KVReq.GET).build();
-
-//                addr = list.get(index);
-//                addr = list.get(index);
-//                r.setAddr(addr);
-//                r.setParam(obj);
-//
-//                RPCResp<LogEntry> response2;
-//                try {
-//                    response2 = client.sendReq(r);
-//                } catch (Exception e) {
-//                    r.setAddr(list.get((int) ((count.incrementAndGet()) % list.size())));
-//                    response2 = client.sendReq(r);
-//                }
-//
-//                LOGGER.info("request content : {}, url : {}, get response : {}",
-//                        obj.key + "=" + obj.getValue(), r.getAddr(), response2.getResult());
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                i = i - 1;
-//            }
-
-        //SleepHelper.sleep(5000);
-//        }
-
 
     }
 
@@ -150,7 +109,6 @@ public class BlockChainAutoClient {
         JSONObject transaction = (JSONObject) jsonObj.get("transaction");
         JSONObject noobChain = (JSONObject) transaction.get("noobChain");
         JSONArray blockChain = (JSONArray) noobChain.get("blockchain");
-        //System.out.println(blockChain);
 
         for (int i = 0; i < blockChain.size(); i++) {
             JSONObject bc = (JSONObject) blockChain.get(i);
@@ -164,13 +122,11 @@ public class BlockChainAutoClient {
                 }
             }
 
-            //ArrayList<String> list1 = (ArrayList<String>) transactionList;
             Block b = new Block(bc.get("hash").toString(), bc.get("previousHash").toString(),
                     bc.get("previousHash").toString(), list,
                     Long.parseLong(bc.get("timeStamp").toString()));
 
             nc.addBlock(b);
-
 
         }
         LogEntry logEntry = new LogEntry(term,
