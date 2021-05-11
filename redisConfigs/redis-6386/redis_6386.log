@@ -1,0 +1,8 @@
+37692:C 11 May 2021 12:22:41.910 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+37692:C 11 May 2021 12:22:41.910 # Redis version=6.2.2, bits=64, commit=00000000, modified=0, pid=37692, just started
+37692:C 11 May 2021 12:22:41.910 # Configuration loaded
+37692:M 11 May 2021 12:22:41.910 * Increased maximum number of open files to 10032 (it was originally set to 256).
+37692:M 11 May 2021 12:22:41.911 * monotonic clock: POSIX clock_gettime
+37692:M 11 May 2021 12:22:41.911 * Running mode=standalone, port=6386.
+37692:M 11 May 2021 12:22:41.911 # Server initialized
+37692:M 11 May 2021 12:22:41.912 * Ready to accept connections
