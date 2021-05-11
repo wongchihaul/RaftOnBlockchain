@@ -10,6 +10,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 public class StateMachineIMPL {
@@ -41,12 +42,15 @@ public class StateMachineIMPL {
         if (transaction == null) {
             throw new IllegalArgumentException(logEntry + ": Command cannot be null");
         }
-        String key = transaction.getKey();
-        String value = transaction.getValue();
+        ArrayList<String> key = transaction.getKey();
+        ArrayList<String> value = transaction.getValue();
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.set(key, value);
+            for (int i = 0; i < key.size(); i++) {
+                jedis.set(key.get(i), value.get(i));
+            }
+
             jedis.set(node.getAddr(), JSON.toJSONString(logEntry));
             // also save logs, because state machine module and log entry module share same jedis instance
             // should be optimized, e.g. use disk-based database, if data becomes huge.

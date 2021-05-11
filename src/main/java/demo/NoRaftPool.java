@@ -17,6 +17,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 import static client.KVReq.PUT;
@@ -88,18 +89,23 @@ public class NoRaftPool {
 
     static RPCResp follower(RPCReq rpcReq) {
         KVReq req = (KVReq) rpcReq.getParam();
-        String key = req.getKey();
-        String value = null;
+
         int redisPort = Peer.getPort(rpcReq.getAddr()) - 100;
-        value = req.getValue();
+        String reqValue = null;
         JedisPool jedisPool = jedisPools[redisPort - FIRST];
         Jedis jedis = null;
 
+
         if (req.getType() == PUT) {
             try {
-                jedis = jedisPool.getResource();
-                jedis.set(key, value);
-                jedis.save();
+                ArrayList<String> key = req.getKey();
+                ArrayList<String> putValue  = req.getValue();
+                for (int i = 0; i < key.size(); i++) {
+                    jedis = jedisPool.getResource();
+                    jedis.set(key.get(i), putValue.get(i));
+                    jedis.save();
+                }
+
             } catch (JedisException e) {
                 e.printStackTrace();
             } finally {
@@ -108,30 +114,33 @@ public class NoRaftPool {
         } else {
             String rdbPath = "redisConfigs/redis-" + redisPort + "/dump.rdb";
             File rdbFile = new File(rdbPath);
-            value = null;
             if (rdbFile.exists()) {
-                value = RDBParser.getVal(rdbFile, key);
+                reqValue = RDBParser.getVal(rdbFile, req.getReqKey());
             }
         }
-        KVAck ack = KVAck.builder().success(true).val(value).build();
+        KVAck ack = KVAck.builder().success(true).val(reqValue).build();
         return RPCResp.builder().req(rpcReq).result(ack).build();
     }
 
     static RPCResp leader(RPCReq rpcReq) {
         KVReq req = (KVReq) rpcReq.getParam();
-        String key = req.getKey();
-        String value = null;
+
+        String reqValue = null;
         int port = Peer.getPort(rpcReq.getAddr());
         int redisPort = port - 100;
 
         if (req.getType() == PUT) {
-            value = req.getValue();
+            ArrayList<String> key = req.getKey();
+            ArrayList<String> putValue  = req.getValue();
             JedisPool jedisPool = jedisPools[redisPort - FIRST];
             Jedis jedis = null;
             try {
-                jedis = jedisPool.getResource();
-                jedis.set(key, value);
-                jedis.save();
+                for (int i = 0; i < key.size(); i++) {
+                    jedis = jedisPool.getResource();
+                    jedis.set(key.get(i), putValue.get(i));
+                    jedis.save();
+                }
+
             } catch (JedisException e) {
                 e.printStackTrace();
             } finally {
@@ -162,12 +171,13 @@ public class NoRaftPool {
         } else {
             String rdbPath = "redisConfigs/redis-" + redisPort + "/dump.rdb";
             File rdbFile = new File(rdbPath);
-            value = null;
+            String key = req.getReqKey();
+
             if (rdbFile.exists()) {
-                value = RDBParser.getVal(rdbFile, key);
+                reqValue = RDBParser.getVal(rdbFile, key);
             }
         }
-        KVAck ack = KVAck.builder().success(true).val(value).build();
+        KVAck ack = KVAck.builder().success(true).val(reqValue).build();
         return RPCResp.builder().req(rpcReq).result(ack).build();
     }
 }

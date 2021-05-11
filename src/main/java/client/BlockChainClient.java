@@ -99,14 +99,21 @@ public class BlockChainClient {
         else {
             newBlock = new Block(nc.getBlockchain().get(nc.getBlockchain().size() - 1).hash);
         }
-
-        newBlock.addTransaction("rrrrrrrc:1234");
+        ArrayList<String> test_key = new ArrayList<>();
+        ArrayList<String> test_value = new ArrayList<>();
+        test_key.add("c");
+        test_key.add("d");
+        test_value.add("3");
+        test_value.add("4");
+        for(int i =0;i<test_key.size();i++){
+            newBlock.addTransaction(test_key.get(i)+":"+test_value.get(i));
+        }
         nc.addBlock(newBlock);
 //        System.out.println(nc);
 
 
         //add the new block and create a new blockchain
-        KVReq obj = KVReq.builder().key("DA").value("chongchongchong").type(PUT).noobChain(nc).build();
+        KVReq obj = KVReq.builder().key(test_key).value(test_value).type(PUT).noobChain(nc).build();
         System.out.println("========================");
         System.out.println("New BlockChain successfully created " + nc + " sending to server...");
 
@@ -126,7 +133,7 @@ public class BlockChainClient {
         Thread.sleep(1000 * 10);
 
 
-        KVReq get = KVReq.builder().key("DA").type(GET).noobChain(nc).build();
+        KVReq get = KVReq.builder().reqKey("a").type(GET).noobChain(nc).build();
         RPCReq rg = RPCReq.builder().requestType(ReqType.KV).addr(addr).param(get).build();
         RPCResp responseg;
         try {
@@ -138,8 +145,8 @@ public class BlockChainClient {
             responseg = client.sendReq(rg);
         }
 
-//        LOGGER.info("request content : {}, url : {}, put response : {}",
-//                        obj.key + "=" + obj.getValue(), r.getAddr(), response.getResult());
+        LOGGER.info("request content : {}, url : {}, put response : {}",
+                        obj.key + "=" + obj.getValue(), r.getAddr(), response.getResult());
 
         // SleepHelper.sleep(1000);
 

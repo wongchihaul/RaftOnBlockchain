@@ -206,7 +206,7 @@ public class NodeIMPL {
         }
 
         if (req.getType() == GET) {
-            String key = req.getKey();
+            String key = req.getReqKey();
             String res = this.stateMachine.getVal(key);
             System.out.println(res);
             System.out.println(KVAck.builder().success(true).val(res).build());

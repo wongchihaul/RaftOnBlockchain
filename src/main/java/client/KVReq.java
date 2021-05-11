@@ -1,6 +1,8 @@
 package client;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+
 import chainUtils.NoobChain;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,8 +24,9 @@ public class KVReq implements Serializable {
 
     int type;
     NoobChain noobChain;
-    String key;
-    String value;
+    ArrayList<String> key;
+    String reqKey;
+    ArrayList<String> value ;
 
 
 
