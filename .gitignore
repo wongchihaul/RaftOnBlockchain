@@ -9,6 +9,7 @@ target
 *.iws
 *.xml
 
+!src/log4j2.xml
 #Redis Log
 *.log
 
