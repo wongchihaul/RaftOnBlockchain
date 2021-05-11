@@ -34,7 +34,6 @@ public class BlockChainAutoClient {
 
     public static void main(String[] args) throws RemotingException, InterruptedException, ParseException {
 
-
         disableWarning();
 
         Options options = new Options();
@@ -45,7 +44,7 @@ public class BlockChainAutoClient {
         try {
             cmd = parser.parse(options, args);
         } catch (ParseException e1) {
-            help(options);
+            ;
         }
 
         boolean demo = false;
