@@ -6,7 +6,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import raft.common.NodeStatus;
 import raft.common.Peer;
-import raft.entity.*;
+import raft.entity.AppEntryParam;
+import raft.entity.AppEntryResult;
+import raft.entity.LogEntry;
+import raft.entity.ReqVoteParam;
+import raft.entity.ReqVoteResult;
 
 import java.util.concurrent.locks.ReentrantLock;
 

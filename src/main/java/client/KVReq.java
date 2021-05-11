@@ -1,18 +1,15 @@
 package client;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-
 import chainUtils.NoobChain;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-/**
- *
- * @author 莫那·鲁道
- */
+import java.io.Serializable;
+import java.util.ArrayList;
+
+
 @Getter
 @Setter
 @ToString
@@ -27,70 +24,4 @@ public class KVReq implements Serializable {
     ArrayList<String> key;
     String reqKey;
     ArrayList<String> value ;
-
-
-
-//    private KVReq(Builder builder) {
-//        setType(builder.type);
-//        setKey(builder.key);
-//        setNoobChain(builder.noobChain);
-//        setValue(builder.value);
-//    }
-
-//    public static Builder newBuilder() {
-//        return new Builder();
-//    }
-//
-//    public enum Type {
-//        PUT(0), GET(1);
-//        int code;
-//
-//        Type(int code) {
-//            this.code = code;
-//        }
-//
-//        public static Type value(int code ) {
-//            for (Type type : values()) {
-//                if (type.code == code) {
-//                    return type;
-//                }
-//            }
-//            return null;
-//        }
-//    }
-//
-//
-//    public static final class Builder {
-//
-//        private int type;
-//        private String key;
-//        private String value;
-//        private NoobChain noobChain;
-//        private Builder() {
-//        }
-//
-//
-//        public Builder type(int val) {
-//            type = val;
-//            return this;
-//        }
-//        public Builder noobChain(NoobChain val) {
-//            noobChain = val;
-//            return this;
-//        }
-//
-//        public Builder key(String val) {
-//            key = val;
-//            return this;
-//        }
-//
-//        public Builder value(String val) {
-//            value = val;
-//            return this;
-//        }
-//
-//        public KVReq build() {
-//            return new KVReq(this);
-//        }
-    //}
 }
