@@ -7,6 +7,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import raft.common.Peer;
 import raft.common.RDBParser;
 import raft.common.ReqType;
 import raft.rpc.RPCClient;
@@ -26,13 +27,16 @@ import static client.KVReq.PUT;
 
 public class BlockChainTestClient {
     private static String addr ;
+    private static String redisPort ;
     private final static RPCClient client = new RPCClient();
     private final static Map<Integer, String> nodes = Map.of(
             0, "localhost:6480",
             1, "localhost:6481",
             2, "localhost:6482",
             3, "localhost:6483",
-            4, "localhost:6484"
+            4, "localhost:6484",
+            5, "localhost:6485",
+            6, "localhost:6485"
     );
 
     public static void main(String[] args) throws ParseException {
@@ -40,6 +44,8 @@ public class BlockChainTestClient {
         Scanner kbd = new Scanner(System.in);
         int option =0;
         addr = getAddr(kbd);
+        redisPort = String.valueOf(Peer.getPort(addr)-100);
+        System.out.println("addr"+addr+"port"+redisPort);
 
         while(option !=3) {
             System.out.println("Welcome to Raft BlockChain, please choose from the following options" +
@@ -52,7 +58,7 @@ public class BlockChainTestClient {
                 option =3;
             }
 
-            NoobChain nc = getCurrentChain(addr);
+            NoobChain nc = getCurrentChain(addr,redisPort);
 
 
             switch (option) {
@@ -82,7 +88,7 @@ public class BlockChainTestClient {
 
     public static String getAddr(Scanner sc) {
         Random random = new Random();
-        System.out.println("Input 0-4 to select a node, empty for random");
+        System.out.println("Input 0-6 to select a node, empty for random");
         String address = null;
         int choice = 0;
         try {
@@ -188,10 +194,11 @@ public class BlockChainTestClient {
 
 
 
-    public static NoobChain getCurrentChain(String addr) throws ParseException {
+    public static NoobChain getCurrentChain(String addr,String port) throws ParseException {
         NoobChain nc = new NoobChain();
         //reading from state machine, get the newest blockchain
-        String rdbPath = "redisConfigs/redis-" + "6381" + "/dump.rdb";
+        String rdbPath = "redisConfigs/redis-" + port + "/dump.rdb";
+        System.out.println("rdbpath" + rdbPath);
         File rdbFile = new File(rdbPath);
         //System.out.println(RDBParser.getVal(rdbFile, addr));
         if (rdbFile.exists()) {

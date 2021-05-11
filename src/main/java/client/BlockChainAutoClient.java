@@ -37,7 +37,7 @@ public class BlockChainAutoClient {
         String rdbPath = "redisConfigs/redis-" + (Peer.getPort(addr) - 100) + "/dump.rdb";
         File rdbFile = new File(rdbPath);
 
-        NoobChain nc = BlockChainTestClient.getCurrentChain(addr);
+        NoobChain nc = BlockChainTestClient.getCurrentChain(addr,String.valueOf(Peer.getPort(addr) - 100));
 
 
         System.out.println("========================\n Current BlockChain" + nc);
