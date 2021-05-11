@@ -5,6 +5,8 @@ import client.KVReq;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.common.ReqType;
@@ -23,12 +25,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 import static client.KVReq.GET;
 import static demo.RedisPool.setConfig;
 import static raft.common.PeerSet.getOthers;
 import static raft.concurrent.RaftConcurrent.RaftThreadPool;
+
+//import java.util.logging.Logger;
 
 
 @Getter
@@ -44,7 +47,7 @@ public class NodeIMPL {
 
     public static final int REPLICATION_TIMEOUT = 4000;
 
-    public static final Logger LOGGER = Logger.getLogger(NodeIMPL.class.getName());
+    public static final Logger LOGGER = LogManager.getLogger(NodeIMPL.class.getName());
 
     public volatile boolean started;
 
@@ -166,9 +169,6 @@ public class NodeIMPL {
 
 
             LeaderElection leaderElection = new LeaderElection(this);
-//            RaftThreadPool.submit(leaderElection);
-//            Random rand = new Random();
-//            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 2000 + rand.nextInt(5) * 1000, 500, TimeUnit.MILLISECONDS);
             RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 3000, 500, TimeUnit.MILLISECONDS);
             LogEntry logEntry = logModule.getLast();
             if (logEntry != null) {
@@ -187,28 +187,27 @@ public class NodeIMPL {
 
 
     public ReqVoteResult handleReqVote(ReqVoteParam param) {
-        LOGGER.warning(String.format("Node{%s} handle request vote param info: %s", this.getAddr(), param));
+//        LOGGER.debug(String.format("Node{%s} handle request vote param info: %s", this.getAddr(), param));
         return consensus.requestVote(param);
     }
 
     public AppEntryResult handleAppEntry(AppEntryParam param) {
-//        LOGGER.info(String.format("Append Entry param info: %s", param));
+//        LOGGER.debug(String.format("Append Entry param info: %s", param));
         return consensus.appendEntry(param);
     }
 
     public KVAck handleClientReq(KVReq req) {
-        LOGGER.warning(String.format("handlerClientRequest handler %s operation", req));
+        LOGGER.debug(String.format("Node{%s} receive request: %s", addr, req));
 
         //System.out.println("==============");
         if (status != NodeStatus.LEADER) {
-            LOGGER.warning("I not am leader , only invoke redirect method");
+            LOGGER.info(String.format("Node{%s} is not am leader, redirect to node{%s}", addr, leader.getAddr()));
             return redirect(req);
         }
 
         if (req.getType() == GET) {
             String key = req.getKey();
             String res = this.stateMachine.getVal(key);
-            System.out.println(res);
             System.out.println(KVAck.builder().success(true).val(res).build());
             return KVAck.builder().success(true).val(res).build();
         }
