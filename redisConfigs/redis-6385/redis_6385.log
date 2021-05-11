@@ -1,0 +1,8 @@
+37639:C 11 May 2021 12:22:32.244 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+37639:C 11 May 2021 12:22:32.244 # Redis version=6.2.2, bits=64, commit=00000000, modified=0, pid=37639, just started
+37639:C 11 May 2021 12:22:32.244 # Configuration loaded
+37639:M 11 May 2021 12:22:32.245 * Increased maximum number of open files to 10032 (it was originally set to 256).
+37639:M 11 May 2021 12:22:32.245 * monotonic clock: POSIX clock_gettime
+37639:M 11 May 2021 12:22:32.253 * Running mode=standalone, port=6385.
+37639:M 11 May 2021 12:22:32.253 # Server initialized
+37639:M 11 May 2021 12:22:32.253 * Ready to accept connections
