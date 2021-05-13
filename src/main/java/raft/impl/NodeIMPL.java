@@ -102,7 +102,7 @@ public class NodeIMPL {
         this.peer = new Peer(addr, redisAddr);
         this.jedisPool = new JedisPool(setConfig(), Peer.getIP(redisAddr), Peer.getPort(redisAddr));
         this.logModule = new LogModuleIMPL(this);
-        this.peerSet = PeerSet.getOthers(this.peer);
+//        this.peerSet = PeerSet.getOthers(this.peer);
         this.stateMachine = new StateMachineIMPL(this);
         this.consensus = new ConsensusIMPL(this);
         this.rpcClient = new RPCClient();
@@ -110,6 +110,7 @@ public class NodeIMPL {
         this.nextIndexes = new HashMap<>();
         this.latestIndexes = new HashMap<>();
         this.started = false;
+        PeerSet.peerSet.add(this.peer);
     }
 
     public void init() {
@@ -140,7 +141,10 @@ public class NodeIMPL {
 
     public void destroy() {
         rpcServer.stop();
-        scheduledHeartBeatTask.cancel(true);
+        if (scheduledHeartBeatTask != null){
+            scheduledHeartBeatTask.cancel(true);
+        }
+        rpcClient = null;
         started = false;
     }
 

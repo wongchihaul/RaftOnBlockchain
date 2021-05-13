@@ -83,7 +83,7 @@ public class LeaderElection implements Runnable {
                 node.getAddr(), node.getCurrentTerm(), node.getLogModule().getLast()));
 
 
-        Set<Peer> peerSet = node.getPeerSet();
+        Set<Peer> peerSet = PeerSet.getOthers(node.getPeer());
 
         CompletableFuture[] cfs = peerSet.stream()
                 .map(peer -> CompletableFuture.supplyAsync(() -> sendVoteReq(peer), this.exs)
@@ -107,7 +107,7 @@ public class LeaderElection implements Runnable {
 
         logger.info(String.format("node{%s} get %d votes from other peers.%n", node.getAddr(), votesCount[0].get()));
         //check votes from a majority of the servers, add vote from itself
-        if (votesCount[0].get() > node.getPeerSet().size() / 2) {
+        if (votesCount[0].get() > PeerSet.getOthers(node.getPeer()).size() / 2) {
             logger.info(String.format("The Node{%s} becomes leader with term %s",
                     node.getAddr(), node.getCurrentTerm()));
 
@@ -123,7 +123,7 @@ public class LeaderElection implements Runnable {
             node.setScheduledHeartBeatTask(scheduledHB);
 
             // set indexes
-            for (Peer peer : node.getPeerSet()) {
+            for (Peer peer : PeerSet.getOthers(node.getPeer())) {
                 node.getNextIndexes().put(peer, node.getLogModule().getLastIndex() + 1);
                 node.getLatestIndexes().put(peer, 0L);
             }

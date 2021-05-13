@@ -3,7 +3,7 @@ package raft.common;
 import java.util.HashSet;
 
 public class PeerSet {
-    public static HashSet<Peer> peerSet = new HashSet<>();
+    public volatile static HashSet<Peer> peerSet = new HashSet<>();
 
     public volatile static Peer leader = null;
 

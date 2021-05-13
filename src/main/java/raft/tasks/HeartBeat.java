@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import raft.common.NodeStatus;
 import raft.common.Peer;
+import raft.common.PeerSet;
 import raft.common.ReqType;
 import raft.entity.AppEntryParam;
 import raft.entity.AppEntryResult;
@@ -39,7 +40,7 @@ public class HeartBeat implements Runnable {
             return;
         }
 
-        Set<Peer> peerSet = node.getPeerSet();
+        Set<Peer> peerSet = PeerSet.getOthers(node.getPeer());
 
         CompletableFuture[] cfs = peerSet.stream()
                 .map(peer -> CompletableFuture.supplyAsync(() -> sendHBReq(peer), this.exs)

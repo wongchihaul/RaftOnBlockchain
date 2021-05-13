@@ -11,19 +11,13 @@ import static org.junit.Assert.assertNotEquals;
 
 public class Outage {
     static final int FIRST = 6380;
-    static final int LAST = 6384;
+    static final int LAST = 6386;
 
     public static void main(String[] args) throws InterruptedException {
         BlockChainTestClient.disableWarning();
         ArrayList<NodeIMPL> nodeList = new ArrayList<>();
         NodeIMPL nodeIMPL = null;
 
-        for (int i = FIRST; i <= LAST; i++) {
-            String addr = "localhost:" + (i + 100);
-            String redisAddr = "localhost:" + i;
-            Peer peer = new Peer(addr, redisAddr);
-            PeerSet.peerSet.add(peer);
-        }
 
         for (int i = FIRST; i <= LAST; i++) {
             String addr = "localhost:" + (i + 100);
@@ -32,22 +26,45 @@ public class Outage {
             nodeList.add(nodeIMPL);
         }
 
+        nodeList.forEach(NodeIMPL::init);
 
         Thread.sleep(1000 * 10);
 
         Peer leader = PeerSet.leader;
 
+        System.out.println("=====================");
         System.out.println("Now stop the leader " + leader.getAddr());
+        System.out.println("=====================");
+
+
+        NodeIMPL victim = null;
 
         for (NodeIMPL node : nodeList) {
             if (node.getPeer().equals(leader)) {
-                node.destroy();
-                // It should start a new election now
+                victim = node;
             }
         }
 
+        String lock = "lock";
+        synchronized (lock){
+            victim.destroy();
+            PeerSet.leader = null;
+            PeerSet.peerSet.remove(victim.getPeer());
+            nodeList.remove(victim);
+        }
+
+        // Remove another node to make the number of nodes odd.
+        synchronized (lock){
+            NodeIMPL anotherVictim = nodeList.get(nodeList.size() - 1);
+            anotherVictim.destroy();
+            PeerSet.peerSet.remove(anotherVictim.getPeer());
+            nodeList.remove(anotherVictim);
+        }
+
+
         Thread.sleep(1000 * 10);
 
+        // It should start a new election now
         assertNotEquals(leader, PeerSet.leader);
     }
 }
