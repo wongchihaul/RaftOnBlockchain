@@ -3,6 +3,7 @@ package client;
 
 import chainUtils.Block;
 import chainUtils.NoobChain;
+import chainUtils.StringUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -222,7 +223,7 @@ public class BlockChainTestClient {
                     }
 
                     Block b = new Block(bc.get("hash").toString(), bc.get("previousHash").toString(),
-                            bc.get("previousHash").toString(), list,
+                            StringUtil.getMerkleRoot(list), list,
                             Long.parseLong(bc.get("timeStamp").toString()));
 
                     nc.addBlock(b);

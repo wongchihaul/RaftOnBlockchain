@@ -92,7 +92,7 @@ public class Replication implements Runnable {
     Boolean sendReplication(Peer peer, LogEntry logEntry, boolean demoVersion) {
         if (demoVersion) {
             try {
-                Thread.sleep(1000 * 20);
+                Thread.sleep(1000 * 10);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

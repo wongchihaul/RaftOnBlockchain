@@ -43,7 +43,7 @@ public class BlockChainAutoClient {
         disableWarning();
 
         Options options = new Options();
-        options.addOption("demo", true, "server port, an integer");
+        options.addOption("demo", true, "in demo mode, raft leader will postpone the replication");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
@@ -84,10 +84,8 @@ public class BlockChainAutoClient {
         }
         ArrayList<String> test_key = new ArrayList<>();
         ArrayList<String> test_value = new ArrayList<>();
-        test_key.add("demo_test");
-        test_key.add("demo_test2");
-        test_value.add("mmm");
-        test_value.add("nnn");
+        test_key.add("Monica");
+        test_value.add("Geller");
         for(int i =0;i<test_key.size();i++){
             newBlock.addTransaction(test_key.get(i)+":"+test_value.get(i));
         }
@@ -111,22 +109,21 @@ public class BlockChainAutoClient {
             response = client.sendReq(r);
         }
 
-        Thread.sleep(1000 * 10);
+        Thread.sleep(1000 * 5);
 
 
         KVReq get = KVReq.builder().reqKey(test_key.get(0)).type(GET).noobChain(nc).demoVersion(demo).build();
         RPCReq rg1 = RPCReq.builder().requestType(ReqType.KV).addr(addr).param(get).build();
         RPCReq rg2 = RPCReq.builder().requestType(ReqType.KV).addr(anotherAddr).param(get).build();
-        RPCResp responseg;
         RPCResp responseg1;
         RPCResp responseg2;
         try {
             responseg1 = client.sendReq(rg1);
             var result1 = (KVAck) responseg1.getResult();
-            System.out.println("Value from leader (localhost:6480): " + result1.getVal());
+            System.out.println("Value from (localhost:6480): " + result1.getVal());
             responseg2 = client.sendReq(rg2);
             var result2 = (KVAck) responseg2.getResult();
-            System.out.println("Value from one follower (localhost:6483): " + result2.getVal());
+            System.out.println("Value from (localhost:6483): " + result2.getVal());
         } catch (Exception e) {
         }
 

@@ -28,17 +28,12 @@ public class Outage {
 
         nodeList.forEach(NodeIMPL::init);
 
-        Thread.sleep(1000 * 10);
+        Thread.sleep(1000 * 30);
 
         Peer leader = PeerSet.leader;
 
-        System.out.println("=====================");
-        System.out.println("Now stop the leader " + leader.getAddr());
-        System.out.println("=====================");
-
 
         NodeIMPL victim = null;
-
         for (NodeIMPL node : nodeList) {
             if (node.getPeer().equals(leader)) {
                 victim = node;
@@ -46,20 +41,28 @@ public class Outage {
         }
 
         String lock = "lock";
+
         synchronized (lock){
+            assert victim != null;
+            System.out.println("=====================");
+            System.out.println("Now stop the leader " + leader.getAddr());
+            System.out.println("=====================");
             victim.destroy();
             PeerSet.leader = null;
             PeerSet.peerSet.remove(victim.getPeer());
             nodeList.remove(victim);
         }
 
-        // Remove another node to make the number of nodes odd.
-        synchronized (lock){
-            NodeIMPL anotherVictim = nodeList.get(nodeList.size() - 1);
-            anotherVictim.destroy();
-            PeerSet.peerSet.remove(anotherVictim.getPeer());
-            nodeList.remove(anotherVictim);
-        }
+//        // Remove another node to make the number of nodes odd.
+//        synchronized (lock){
+//            NodeIMPL anotherVictim = nodeList.get(nodeList.size() - 1);
+//            System.out.println("=====================");
+//            System.out.println("Now stop the one more server " + anotherVictim.getAddr());
+//            System.out.println("=====================");
+//            anotherVictim.destroy();
+//            PeerSet.peerSet.remove(anotherVictim.getPeer());
+//            nodeList.remove(anotherVictim);
+//        }
 
 
         Thread.sleep(1000 * 10);

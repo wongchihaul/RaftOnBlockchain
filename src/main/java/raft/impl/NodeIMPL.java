@@ -127,7 +127,7 @@ public class NodeIMPL {
 
 
             LeaderElection leaderElection = new LeaderElection(this);
-            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 3000, 500, TimeUnit.MILLISECONDS);
+            RaftConcurrent.scheduler.scheduleAtFixedRate(leaderElection, 3000, 300, TimeUnit.MILLISECONDS);
             LogEntry logEntry = logModule.getLast();
             if (logEntry != null) {
                 currentTerm = logEntry.getTerm();
