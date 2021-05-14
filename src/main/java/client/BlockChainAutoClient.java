@@ -84,8 +84,8 @@ public class BlockChainAutoClient {
         }
         ArrayList<String> test_key = new ArrayList<>();
         ArrayList<String> test_value = new ArrayList<>();
-        test_key.add("");
-        test_value.add("");
+        test_key.add("Pyke");
+        test_value.add("Mid");
         for(int i =0;i<test_key.size();i++){
             newBlock.addTransaction(test_key.get(i)+":"+test_value.get(i));
         }

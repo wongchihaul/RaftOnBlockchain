@@ -131,3 +131,10 @@
 1580:M 14 May 2021 11:20:17.076 * Background saving started by pid 5009
 5009:C 14 May 2021 11:20:17.079 * DB saved on disk
 1580:M 14 May 2021 11:20:17.137 * Background saving terminated with success
+1580:M 14 May 2021 11:31:02.754 * 1 changes in 30 seconds. Saving...
+1580:M 14 May 2021 11:31:02.756 * Background saving started by pid 5212
+5212:C 14 May 2021 11:31:02.758 * DB saved on disk
+1580:M 14 May 2021 11:31:02.862 * Background saving terminated with success
+1580:M 14 May 2021 11:36:05.821 * Background saving started by pid 5400
+5400:C 14 May 2021 11:36:05.823 * DB saved on disk
+1580:M 14 May 2021 11:36:05.834 * Background saving terminated with success
