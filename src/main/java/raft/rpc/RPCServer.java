@@ -5,27 +5,25 @@ import com.alipay.remoting.AsyncContext;
 import com.alipay.remoting.BizContext;
 import com.alipay.remoting.rpc.RpcServer;
 import com.alipay.remoting.rpc.protocol.AbstractUserProcessor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import raft.entity.AppEntryParam;
 import raft.entity.ReqVoteParam;
 import raft.entity.ReqVoteResult;
 import raft.impl.NodeIMPL;
 
-import java.util.logging.Logger;
+
 
 @SuppressWarnings("unchecked")
 public class RPCServer {
     NodeIMPL node;
     RpcServer rpcServer;
-    public static final Logger logger = Logger.getLogger(RPCServer.class.getName());
-
-    CONNECTEventProcessor serverConnectProcessor = new CONNECTEventProcessor();
-    DISCONNECTEventProcessor serverDisConnectProcessor = new DISCONNECTEventProcessor();
+    public static final Logger logger = LogManager.getLogger(RPCServer.class.getName());
 
     public RPCServer(int port, NodeIMPL node) {
+
         this.node = node;
         rpcServer = new RpcServer(port);
-//        rpcServer.addConnectionEventProcessor(ConnectionEventType.CONNECT, serverConnectProcessor);
-//        rpcServer.addConnectionEventProcessor(ConnectionEventType.CLOSE, serverDisConnectProcessor);
         rpcServer.registerUserProcessor(new AbstractUserProcessor<RPCReq>() {
             @Override
             public void handleRequest(BizContext bizContext, AsyncContext asyncContext, RPCReq rpcReq) {
@@ -45,9 +43,9 @@ public class RPCServer {
 
     public void start() {
         if (rpcServer.start()) {
-            System.out.println("server start ok!");
+            logger.info(String.format("server{%s} start ok!", node.getAddr()));
         } else {
-            System.out.println("server start failed!");
+            logger.error(String.format("server{%s} start failed!", node.getAddr()));
         }
     }
 
@@ -58,6 +56,7 @@ public class RPCServer {
     public RPCResp handleReq(RPCReq rpcReq) {
         Object result = false;
         switch (rpcReq.getRequestType()) {
+
             case REQ_VOTE:
                 ReqVoteParam voteParam = (ReqVoteParam) rpcReq.getParam();
                 result = node.handleReqVote(voteParam);
@@ -66,21 +65,23 @@ public class RPCServer {
                     logger.info(String.format("node{%s, status=%s} vote node{%s} for %s",
                             node.getAddr(), node.getStatus(), voteParam.getCandidateId(), true));
                 } else {
-                    logger.warning(String.format("node{%s, status=%s} vote node{%s} for %s, because it vote for node{%s}",
+                    logger.warn(String.format("node{%s, status=%s} vote node{%s} for %s, because it vote for node{%s}",
                             node.getAddr(), node.getStatus(),
                             voteParam.getCandidateId(), false, node.getVotedFor()));
                 }
                 break;
+
             case APP_ENTRY:
                 result = node.handleAppEntry((AppEntryParam) rpcReq.getParam());
                 break;
+
             case KV:
-                //System.out.println("KVok!!");
                 result = node.handleClientReq((KVReq) rpcReq.getParam());
-                System.out.println("Successfully get result" + result);
+                System.out.println(node.getAddr() + " Successfully get result" + result);
                 break;
+
             default:
-                logger.severe("Unsupported request type");
+                logger.error("Unsupported request type");
         }
 
 //        System.out.println(node.getAddr() + " is sending back RPC response");

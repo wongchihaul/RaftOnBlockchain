@@ -1,8 +1,11 @@
 package chainUtils;
 
+import lombok.Builder;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+
 
 public class Block implements Serializable {
     public String hash;
@@ -18,6 +21,13 @@ public class Block implements Serializable {
         this.hash = calculateHash(); //Making sure we do this after we set the other values.
     }
 
+    public Block(String hash, String previousHash, String merkleRoot, ArrayList<String> transactions, long timeStamp) {
+        this.hash = hash;
+        this.previousHash = previousHash;
+        this.merkleRoot = merkleRoot;
+        this.transactions = transactions;
+        this.timeStamp = timeStamp;
+    }
 
     //Add one transaction to this block
     public synchronized boolean addTransaction(String transaction) {
@@ -59,4 +69,14 @@ public class Block implements Serializable {
         );
     }
 
+    @Override
+    public String toString() {
+        return "\nBlock{" +
+                "\nhash='" + hash + '\'' +
+                ", \npreviousHash='" + previousHash + '\'' +
+                ", \nmerkleRoot='" + merkleRoot + '\'' +
+                ", \ntransactions=" + transactions +
+                ", \ntimeStamp=" + timeStamp +
+                '}';
+    }
 }

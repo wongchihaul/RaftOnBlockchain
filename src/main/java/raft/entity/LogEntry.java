@@ -1,7 +1,7 @@
 package raft.entity;
 
 
-import lombok.Builder;
+import chainUtils.NoobChain;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +10,7 @@ import java.util.Objects;
 
 @Getter
 @Setter
-@Builder
+//@Builder
 public class LogEntry implements Serializable, Comparable {
 
     private long term;
@@ -19,6 +19,26 @@ public class LogEntry implements Serializable, Comparable {
 
     private Transaction transaction;
 
+    private NoobChain noobChain;
+
+    public LogEntry() {}
+
+    public LogEntry(long term, long index, Transaction transaction, NoobChain noobChain) {
+        this.term = term;
+        this.index = index;
+        this.transaction = transaction;
+        this.noobChain = noobChain;
+    }
+
+    public LogEntry(long term, Transaction transaction) {
+        this.term = term;
+        this.transaction = transaction;
+    }
+    public LogEntry(long index,long term, Transaction transaction) {
+        this.index = index;
+        this.term = term;
+        this.transaction = transaction;
+    }
 
     @Override
     public int compareTo(Object o) {

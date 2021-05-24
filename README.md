@@ -41,12 +41,18 @@ done
 
 ### Server
 ```bash
-java 
+run demo.Raftpool in IDE
 ```
 
 ### Client
+#### Auto entry
 ```bash
-java
+run client.BlockChainAutoClient in IDE
 ```
-#### Client User Interface
-#### AutoTest Client
+#### Manually entry
+```bash
+run client.BlockChainTestClient in IDE
+Or 
+java -jar RaftOnBlockchain-2.0-SNAPSHOT.jar
+```
+

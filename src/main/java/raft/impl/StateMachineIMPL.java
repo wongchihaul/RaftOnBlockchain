@@ -1,6 +1,8 @@
 package raft.impl;
 
-import raft.StateMachine;
+import com.alibaba.fastjson.JSON;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import raft.common.Peer;
 import raft.common.RDBParser;
 import raft.entity.LogEntry;
@@ -10,20 +12,19 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.io.File;
-import java.util.logging.Logger;
+import java.util.ArrayList;
 
-public class StateMachineIMPL implements StateMachine {
+
+public class StateMachineIMPL {
     //TODO: whether we should use disk-based database instead of Redis, since everytime we read
     // data from disk we should shutdown Redis, load RDB file and restart the Redis.
 
-    public static final java.util.logging.Logger logger = Logger.getLogger(StateMachineIMPL.class.getName());
+    public static final Logger logger = LogManager.getLogger(StateMachineIMPL.class.getName());
 
     NodeIMPL node;
     JedisPool jedisPool;
 
-    /**
-     * "redisConfigs/redis-${port}/dump.rdb"
-     */
+    /** "redisConfigs/redis-${port}/dump.rdb" */
     String rdbPath;
 
     //    String confPath;
@@ -35,22 +36,25 @@ public class StateMachineIMPL implements StateMachine {
         rdbPath = "redisConfigs/redis-" + Peer.getPort(node.getRedisAddr()) + "/dump.rdb";
     }
 
-    // TODO: I don't think synchronized is needed since Redis is single-threaded.
-    @Override
     public void apply(LogEntry logEntry) {
         Transaction transaction = logEntry.getTransaction();
         if (transaction == null) {
             throw new IllegalArgumentException(logEntry + ": Command cannot be null");
         }
-        String key = transaction.getKey();
-        String value = transaction.getValue();
+        ArrayList<String> key = transaction.getKey();
+        ArrayList<String> value = transaction.getValue();
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            jedis.setnx(key, value);
+            for (int i = 0; i < key.size(); i++) {
+                jedis.set(key.get(i), value.get(i));
+            }
+
+            jedis.set(node.getAddr(), JSON.toJSONString(logEntry));
             // also save logs, because state machine module and log entry module share same jedis instance
             // should be optimized, e.g. use disk-based database, if data becomes huge.
-            jedis.save();
+            System.out.println("Saving now");
+            jedis.bgsave();
         } catch (JedisException e) {
             e.printStackTrace();
         } finally {
@@ -62,7 +66,6 @@ public class StateMachineIMPL implements StateMachine {
 
     //TODO: Plan (A) use third-party parsing library to parse RDB file and get value
     //      Plan (B) find out how to use a temporary Redis instance to load RDB file and get value
-    @Override
     public String getVal(String key) {
         File rdbFile = new File(rdbPath);
         if (rdbFile.exists()) {
@@ -71,13 +74,4 @@ public class StateMachineIMPL implements StateMachine {
         return null;
     }
 
-    @Override
-    public void setVal(String key, String value) {
-
-    }
-
-    @Override
-    public void delVal(String... key) {
-
-    }
 }

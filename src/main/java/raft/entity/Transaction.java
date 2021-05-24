@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Objects;
 
 /**
@@ -19,9 +20,10 @@ import java.util.Objects;
 @Builder
 public class Transaction implements Serializable {
 
-    public String key;
+
+    public ArrayList<String> key ;
     public NoobChain noobChain;
-    public String value;
+    public ArrayList<String> value ;
 
     @Override
     public boolean equals(Object o) {

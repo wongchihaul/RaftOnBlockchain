@@ -1,7 +1,7 @@
 package raft.impl;
 
 import com.alibaba.fastjson.JSON;
-import raft.LogModule;
+import org.json.simple.parser.ParseException;
 import raft.entity.LogEntry;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -9,7 +9,9 @@ import redis.clients.jedis.exceptions.JedisException;
 
 import java.util.UUID;
 
-public class LogModuleIMPL implements LogModule {
+import static client.BlockChainAutoClient.StringToObject;
+
+public class LogModuleIMPL {
     NodeIMPL node;
     String uuid;
     JedisPool jedisPool;
@@ -21,7 +23,6 @@ public class LogModuleIMPL implements LogModule {
     }
 
 
-    @Override
     public void write(LogEntry logEntry) {
         Jedis jedis = null;
         try {
@@ -31,24 +32,27 @@ public class LogModuleIMPL implements LogModule {
         } catch (JedisException e) {
             e.printStackTrace();
         } finally {
-            jedis.close();
+            if (jedis != null) {
+                jedis.close();
+            }
         }
     }
 
-    @Override
     public LogEntry read(long index) {
         Jedis jedis = null;
         try {
             jedis = jedisPool.getResource();
-            String entry = jedis.lindex(uuid, index-1);
+            String entry = jedis.lindex(uuid, index);
             if (entry == null) {
                 return null;
             }
-            return JSON.parseObject(entry, LogEntry.class);
-        } catch (JedisException e) {
+            return StringToObject(jedis.lindex(uuid, index));
+        } catch (JedisException | ParseException e) {
             e.printStackTrace();
         } finally {
-            jedis.close();
+            if (jedis != null) {
+                jedis.close();
+            }
         }
         return null;
     }
@@ -58,7 +62,6 @@ public class LogModuleIMPL implements LogModule {
      *
      * @param startIndex
      */
-    @Override
     public void removeLogs(Long startIndex) {
         Jedis jedis = null;
         try {
@@ -67,27 +70,31 @@ public class LogModuleIMPL implements LogModule {
         } catch (JedisException e) {
             e.printStackTrace();
         } finally {
-            jedis.close();
+            if (jedis != null) {
+                jedis.close();
+            }
         }
     }
 
-    @Override
     public LogEntry getLast() {
         return read(getLastIndex());
     }
 
     // start from 1
-    @Override
     public Long getLastIndex() {
         Jedis jedis = null;
         Long lastIndex = null;
         try {
             jedis = jedisPool.getResource();
-            lastIndex = jedis.llen(uuid) == 0 ? 1 : jedis.llen(uuid);
+//            System.out.println("$$$the jedis uuid length is" + jedis.llen(uuid));
+            //lastIndex = jedis.llen(uuid) == 0 ? 1 : jedis.llen(uuid);
+            lastIndex = jedis.llen(uuid)-1;
         } catch (JedisException e) {
             e.printStackTrace();
         } finally {
-            jedis.close();
+            if (jedis != null) {
+                jedis.close();
+            }
         }
         return lastIndex;
     }

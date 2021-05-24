@@ -1,6 +1,7 @@
 package raft.tasks;
 
-import raft.LogModule;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import raft.common.NodeStatus;
 import raft.common.Peer;
 import raft.common.PeerSet;
@@ -8,6 +9,7 @@ import raft.common.ReqType;
 import raft.entity.LogEntry;
 import raft.entity.ReqVoteParam;
 import raft.entity.ReqVoteResult;
+import raft.impl.LogModuleIMPL;
 import raft.impl.NodeIMPL;
 import raft.rpc.RPCReq;
 import raft.rpc.RPCResp;
@@ -16,7 +18,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 
 import static raft.concurrent.RaftConcurrent.scheduler;
 
@@ -36,7 +37,7 @@ import static raft.concurrent.RaftConcurrent.scheduler;
  * 4. if timeout， start a new election
  */
 public class LeaderElection implements Runnable {
-    private final static Logger LOGGER = Logger.getLogger(LeaderElection.class.getName());
+    private final static Logger logger = LogManager.getLogger(LeaderElection.class.getName());
 
     NodeIMPL node;
 
@@ -46,7 +47,7 @@ public class LeaderElection implements Runnable {
 
     public LeaderElection(NodeIMPL node) {
         this.node = node;
-        this.exs = Executors.newFixedThreadPool(4);     // 1 self +  4 peers = 5 nodes in total
+        this.exs = Executors.newFixedThreadPool(6);     // 1 self +  4 peers = 5 nodes in total
     }
 
     @Override
@@ -54,127 +55,89 @@ public class LeaderElection implements Runnable {
         if (node.getStatus() == NodeStatus.LEADER || node.getStatus() == NodeStatus.CANDIDATE) {
             return;
         }
-//        if(node.getCurrentTerm() == 0) {
-//            try{
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
+        long curTime = System.currentTimeMillis();
+        if (curTime - node.prevElectionTime < node.electionTimeOut) {
+            return;
+        }
+        votesCount[0].set(0);
         startElection();
     }
 
 
     void startElection() {
-        if (PeerSet.leader != null) {
-            System.out.println("set leader in start election");
-            System.out.printf("node{%s}%n", node.getAddr());
-            node.setLeader(PeerSet.leader);
+        Random rand = new Random();
+        // election timeout is (150-300ms)
+        node.electionTimeOut = NodeIMPL.ELECTION_TIMEOUT + rand.nextInt(200);
+        node.prevElectionTime = System.currentTimeMillis();
+
+        // begin election
+        node.setStatus(NodeStatus.CANDIDATE);
+        //increment term and vote for itself
+        node.setCurrentTerm(node.getCurrentTerm() + 1);
+
+        // vote for itself
+        node.setVotedFor(node.getAddr());
+
+        logger.warn(String.format("node %s becomes a candidate and begins the election, " +
+                        "current term: %s LastEntry: %s",
+                node.getAddr(), node.getCurrentTerm(), node.getLogModule().getLast()));
+
+
+        Set<Peer> peerSet = PeerSet.getOthers(node.getPeer());
+
+        CompletableFuture[] cfs = peerSet.stream()
+                .map(peer -> CompletableFuture.supplyAsync(() -> sendVoteReq(peer), this.exs)
+                        .thenAccept(this::handleVoteResp))
+                .toArray(CompletableFuture[]::new);
+
+        // wait for the vote response
+        CompletableFuture.allOf(cfs).join();
+
+        //candidate receive AppendEntries RPC,  if leader's term as large as currentTerm, return
+        // to follower
+        if (node.getStatus() == NodeStatus.FOLLOWER) {
+            logger.warn(String.format(
+                    "Node{%s} candidate receives heartbeat from valid leader, return to follower",
+                    node.getAddr()));
+            votesCount[0].set(0);
+            node.setStatus(NodeStatus.FOLLOWER);
+            node.setVotedFor(null);
             return;
+        }
+
+        logger.info(String.format("node{%s} get %d votes from other peers.%n", node.getAddr(), votesCount[0].get()));
+        //check votes from a majority of the servers, add vote from itself
+        if (votesCount[0].get() > PeerSet.getOthers(node.getPeer()).size() / 2) {
+            logger.info(String.format("The Node{%s} becomes leader with term %s",
+                    node.getAddr(), node.getCurrentTerm()));
+
+            //set itself to leader
+            node.setStatus(NodeStatus.LEADER);
+            node.setLeader(node.getPeer());
+            PeerSet.leader = node.getPeer();
+
+            // Start heartbeat task
+            HeartBeat heartBeat = new HeartBeat(node);
+            ScheduledFuture<?> scheduledHB = scheduler.scheduleAtFixedRate(
+                    heartBeat, 0, NodeIMPL.HEARTBEAT_TICK, TimeUnit.MILLISECONDS);
+            node.setScheduledHeartBeatTask(scheduledHB);
+
+            // set indexes
+            for (Peer peer : PeerSet.getOthers(node.getPeer())) {
+                node.getNextIndexes().put(peer, node.getLogModule().getLastIndex() + 1);
+                node.getLatestIndexes().put(peer, 0L);
+            }
         } else {
-            long curTime1;
-
-            //begin election
-            node.setStatus(NodeStatus.CANDIDATE);
-
-            //increment term and vote for itself
-            node.setCurrentTerm(node.getCurrentTerm() + 1);
-
-            // vote for itself
-            node.setVotedFor(node.getAddr());
-
-            LOGGER.info(String.format("node %s becomes a candidate and begins the election, " +
-                            "current term: %s LastEntry: %s peerset %s",
-                    node.getPeer(), node.getCurrentTerm(), node.getLogModule().getLast(), node.getPeerSet()));
-
-
-            Set<Peer> peerSet = node.getPeerSet();
-
-            //election timeout is (150-300ms)
-            Random rand = new Random();
-            int timeout = NodeIMPL.ELECTION_TIMEOUT + rand.nextInt(150);
-
-            CompletableFuture[] cfs = peerSet.stream()
-                    .map(peer -> CompletableFuture.supplyAsync(() -> sendVoteReq(peer), this.exs)
-                            .thenAccept(this::handleVoteResp))
-                    .toArray(CompletableFuture[]::new);
-
-            CompletableFuture.allOf(cfs).join();
-
-            //candidate receive AppendEntries RPC,  if leader's term as large as currentTerm, return
-            // to follower
-            boolean flag = true;
-            if (node.getStatus() == NodeStatus.FOLLOWER) {
-                LOGGER.info(String.format(
-                        "Node{%s} candidate receive AppendEntries RPC from valid leader, return to follower",
-                        node.getAddr()));
-                flag = false;
-            }
-            if (flag) {
-                System.out.printf("votesCount from peers: %d peer number: %d%n",
-                        votesCount[0].get(), node.getPeerSet().size());
-                //check votes from a majority of the servers, add vote from itself
-                if (votesCount[0].get() + 1 > (node.getPeerSet().size() + 1) / 2) {
-                    LOGGER.info("The Node " + node.getAddr() + " becomes leader");
-                    node.setStatus(NodeStatus.LEADER);
-
-                    //set itself to leader
-                    node.setLeader(node.getPeer());
-                    PeerSet.leader = node.getPeer();
-
-                    // Start heartbeat task
-                    HeartBeat heartBeat = new HeartBeat(node);
-                    ScheduledFuture<?> scheduledHB = scheduler.scheduleAtFixedRate(heartBeat, 0, NodeIMPL.HEARTBEAT_TICK, TimeUnit.MILLISECONDS);
-                    node.setScheduledHeartBeatTask(scheduledHB);
-
-                    // set indexes
-                    long currIndex = node.getCommitIndex();
-                    for (Peer peer : node.getPeerSet()) {
-                        node.getNextIndexes().put(peer, currIndex + 1);
-                        node.getLatestIndexes().put(peer, 0L);
-                    }
-
-
-                } else {
-                    curTime1 = System.currentTimeMillis();
-                    waitForAWhile(curTime1, timeout);
-                    votesCount[0].set(0);
-                    System.out.println("no leader elected yet and start over");
-                    startElection();
-                }
-            } else {
-                curTime1 = System.currentTimeMillis();
-                waitForAWhile(curTime1, timeout);
-                if (PeerSet.leader == null) {
-                    votesCount[0].set(0);
-                    startElection();
-                }
-            }
+            logger.info(String.format("node{%s} - lose the election back to follower %n", node.getAddr()));
+            votesCount[0].set(0);
+            node.setStatus(NodeStatus.FOLLOWER);
+            node.setVotedFor(null);
         }
     }
-
-    public void waitForAWhile(long start, long timeout) {
-        long now = System.currentTimeMillis();
-        node.setStatus(NodeStatus.FOLLOWER);
-        node.setVotedFor(null);
-        while (true) {
-            if (now - start < timeout) {
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                now = System.currentTimeMillis();
-            } else {
-                break;
-            }
-        }
-    }
-
 
     RPCResp sendVoteReq(Peer peer) {
-        LogModule logModule = node.getLogModule();
-        long lastTerm = 0;
+        LogModuleIMPL logModule = node.getLogModule();
+        long lastTerm = 0L;
         LogEntry currLast = logModule.getLast();
         if (currLast != null) {
             lastTerm = currLast.getTerm();
@@ -193,9 +156,7 @@ public class LeaderElection implements Runnable {
                 .addr(peer.getAddr())
                 .build();
 
-//        System.out.println(rpcReq.toString());
-
-        //get the RPC response from client, and add the response to future list
+        // get the RPC response from client, and add the response to future list
         RPCResp voteResp = node.getRpcClient().sendReq(rpcReq);
         return voteResp;
     }
@@ -205,7 +166,6 @@ public class LeaderElection implements Runnable {
             return;
         }
         ReqVoteResult voteResult = (ReqVoteResult) voteResp.getResult();
-//        System.out.println("voteResult:" + voteResult);
         if (voteResult == null) {
             return;
         }
