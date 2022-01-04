@@ -19,39 +19,39 @@ sudo apt-get install redis
 
 ## How To Run
 ### Start Redis first
-#### Change directory to the folder where redis.conf located and start the 5 servers
+#### Change directory to the folder where redis.conf located and start servers. Or;
 ```bash
 cd ..../RaftOnBlockchain/redisConfigs/redis-6380 && redis-server redis.conf
 cd ..../RaftOnBlockchain/redisConfigs/redis-6381 && redis-server redis.conf
 cd ..../RaftOnBlockchain/redisConfigs/redis-6382 && redis-server redis.conf
 cd ..../RaftOnBlockchain/redisConfigs/redis-6383 && redis-server redis.conf
 cd ..../RaftOnBlockchain/redisConfigs/redis-6384 && redis-server redis.conf
+cd ..../RaftOnBlockchain/redisConfigs/redis-6385 && redis-server redis.conf
+cd ..../RaftOnBlockchain/redisConfigs/redis-6386 && redis-server redis.conf
 ```
-
+#### Do it in a for loop
 ```shell
 cd redisConfigs
 
-dir=$(ls -l |awk '/^d/ {print $NF}')
-
-for i in $dir
-do
-cd $i && redis-server redis.conf&
-done
+for dir in */
+  do
+    (cd $dir && redis-server redis.conf)
+  done
 ```
 
 ### Server
 ```bash
-run demo.Raftpool in IDE
+run demo.Raftpool in Intellij IDEA
 ```
 
 ### Client
 #### Auto entry
 ```bash
-run client.BlockChainAutoClient in IDE
+run client.BlockChainAutoClient in Intellij IDEA
 ```
 #### Manually entry
 ```bash
-run client.BlockChainTestClient in IDE
+run client.BlockChainTestClient in Intellij IDEA
 Or 
 java -jar RaftOnBlockchain-2.0-SNAPSHOT.jar
 ```
